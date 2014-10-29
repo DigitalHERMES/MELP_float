@@ -301,13 +301,13 @@ float lpc_schr(float *r, float *a, float *k_tmp, int p)
 }
 
 /* minimum LSP separation-- a global variable */
-float lsp_delta = 0.0;
+float lsp_delta = 0.0f;
 
 /* private functions */
 static float lsp_g(float x,float *c,int p2);
 static int   lsp_roots(float *w,float **c,int p2);
 
-#define DELTA  0.00781250
+#define DELTA  0.00781250f
 #define BISECTIONS 4
     
 
@@ -415,15 +415,15 @@ int lpc_lsp2pred(float *w,float *a,int p)
     p2 = p/2;
     MEM_2ALLOC(MALLOC,f,2,p2+1,float);
     f[0][0] = f[1][0] = 1.0;
-    f[0][1] = (float)-2.0*cos((double)w[1]*M_PI);
-    f[1][1] = (float)-2.0*cos((double)w[2]*M_PI);
+    f[0][1] = (float)-2.0f*cosf(w[1]*M_PI);
+    f[1][1] = (float)-2.0f*cosf(w[2]*M_PI);
 
     k = 3;
 
     for(i=2; i <= p2; i++)
     {
-        c[0] = (float)-2.0*cos((double)w[k++]*M_PI);
-        c[1] = (float)-2.0*cos((double)w[k++]*M_PI);
+        c[0] = (float)-2.0f*cosf(w[k++]*M_PI);
+        c[1] = (float)-2.0f*cosf(w[k++]*M_PI);
         f[0][i] = f[0][i-2];
         f[1][i] = f[1][i-2];
 
@@ -441,8 +441,8 @@ int lpc_lsp2pred(float *w,float *a,int p)
         f[0][i] += f[0][i-1];
         f[1][i] -= f[1][i-1];
 
-        a[i] = 0.50*(f[0][i]+f[1][i]);
-        a[p+1-i] = 0.50*(f[0][i]-f[1][i]);
+        a[i] = 0.50f*(f[0][i]+f[1][i]);
+        a[p+1-i] = 0.50f*(f[0][i]-f[1][i]);
     }
 
     MEM_2FREE(FREE,f);
@@ -496,7 +496,7 @@ static float lsp_g(float x,float *c,int p2)
 
     for(i=p2; i > 0; i--)
     {
-        b[0] = 2.0*x*b[1] - b[2] + c[i];
+        b[0] = 2.0f*x*b[1] - b[2] + c[i];
         b[2] = b[1];
         b[1] = b[0];
     }
@@ -530,7 +530,7 @@ static int lsp_roots(float *w,float **c,int p2)
 
             for(i=0; i < BISECTIONS; i++)
             {
-                x = (x0+x1)/2.0;
+                x = (x0+x1)/2.0f;
                 y = lsp_g(x,ptr,p2);
 
                 if(y*g0 < 0.0)

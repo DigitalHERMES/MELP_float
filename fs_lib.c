@@ -76,10 +76,10 @@ void find_harm(float input[], float fsmag[], float pitch, int num_harm,
     if (num_harm > 0.25f*pitch)
 	num_harm = (int)(0.25f*pitch);
     for (k = 0; k < num_harm; k++) {
-	i = ((k+1)*fwidth) - i2 + 0.5; /* Stfart at peak-i2 */
-	j = i + findmax(&mag[i],iwidth);
-	fsmag[k] = mag[j];
-	avg += mag[j];
+		i = (int)(((k+1)*fwidth) - i2 + 0.5f); /* Stfart at peak-i2 */
+		j = i + findmax(&mag[i],iwidth);
+		fsmag[k] = mag[j];
+		avg += mag[j];
     }
 
     /* Normalize Fourier series values to average magnitude */
@@ -211,16 +211,16 @@ void	idft_real(float real[], float signal[], int length)
     length2 = (length/2)+1;
     w = TWOPI / length;
     for (i = 0; i < length; i++ ) {
-	idftc[i] = cos(w*i);
+	idftc[i] = cosf(w*i);
     }
-    real[0] *= (1.0/length);
+    real[0] *= (1.0f/length);
     for (i = 1; i < length2-1; i++ ) {
-	real[i] *= (2.0/length);
+	real[i] *= (2.0f/length);
     }
     if ((i*2) == length)
-	real[i] *= (1.0/length);
+	real[i] *= (1.0f/length);
     else
-	real[i] *= (2.0/length);
+	real[i] *= (2.0f/length);
 
     for (i = 0; i < length; i++ ) {
 	signal[i] = real[0];

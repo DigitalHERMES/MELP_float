@@ -110,13 +110,14 @@ struct melp_param {         /* MELP parameters */
 };
 
 /* External function definitions */
+#ifdef _WIN32
+__declspec(dllexport) void __cdecl melp_ana(float sp_in[],struct melp_param *par);
+__declspec(dllexport) void __cdecl melp_syn(struct melp_param *par, float sp_out[]);
+__declspec(dllexport) void __cdecl melp_ana_init();
+__declspec(dllexport) void __cdecl melp_syn_init();
+__declspec(dllexport) int  __cdecl melp_chn_read(struct melp_param *par, struct melp_param *prev_par);
+__declspec(dllexport) void __cdecl melp_chn_write(struct melp_param *par);
 
-//__declspec(dllexport) void __cdecl melp_ana(float sp_in[],struct melp_param *par);
-//__declspec(dllexport) void __cdecl melp_syn(struct melp_param *par, float sp_out[]);
-//__declspec(dllexport) void __cdecl melp_ana_init();
-//__declspec(dllexport) void __cdecl melp_syn_init();
-//__declspec(dllexport) int  __cdecl melp_chn_read(struct melp_param *par, struct melp_param *prev_par);
-//__declspec(dllexport) void __cdecl melp_chn_write(struct melp_param *par);
-
-//__declspec(dllexport) void __cdecl fec_code(struct melp_param *par);
-//__declspec(dllexport) int  __cdecl fec_decode(struct melp_param *par, int erase);
+__declspec(dllexport) void __cdecl fec_code(struct melp_param *par);
+__declspec(dllexport) int  __cdecl fec_decode(struct melp_param *par, int erase);
+#endif
