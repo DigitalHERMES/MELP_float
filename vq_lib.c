@@ -47,7 +47,7 @@ float *vq_lspw(float *w,float *lsp,float *a,int p)
 
         for(j=0; j < p; j++)
         {
-            w[j] = (float)pow((double)lpc_aejw(a,lsp[j]*M_PI,p),(double)-0.3);
+            w[j] = (float)powf(lpc_aejw(a,lsp[j]*M_PI,p),-0.3f);
             if (j == 8)
                 w[j] *= 0.64f;
             else if (j == 9)
