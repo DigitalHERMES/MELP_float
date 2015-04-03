@@ -194,7 +194,7 @@ int melp_chn_read(struct melp_param *par, struct melp_param *prev_par)
 	  {
 	      quant_u_dec(par->pitch_index,&par->pitch,PIT_QLO,PIT_QUP,
 			  PIT_QLEV);
-	      par->pitch = pow(10.0,par->pitch);
+	      par->pitch = powf(10.0f,par->pitch);
 	  }
 
 	/* Decode jitter and bandpass voicing */

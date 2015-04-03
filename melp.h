@@ -64,25 +64,25 @@ Group (phone 972 480 7442).
 
 /* Noise suppression/estimation parameters */
 /* Up by 3 dB/sec (0.5*22.5 ms frame), down by 12 dB/sec */
-#define UPCONST 0.0337435    /* noise estimation up time constant */
-#define DOWNCONST -0.135418  /* noise estimation down time constant */
-#define NFACT 3.0            /* noise floor boost in dB */
-#define MAX_NS_ATT 6.0       /* maximum noise suppression */
-#define MAX_NS_SUP 20.0      /* maximum noise level to use in suppression */  
-#define MIN_NOISE 10.0       /* minimum value allowed in noise estimation */
-#define MAX_NOISE 80.0       /* maximum value allowed in noise estimation */
+#define UPCONST 0.0337435f    /* noise estimation up time constant */
+#define DOWNCONST -0.135418f  /* noise estimation down time constant */
+#define NFACT 3.0f            /* noise floor boost in dB */
+#define MAX_NS_ATT 6.0f       /* maximum noise suppression */
+#define MAX_NS_SUP 20.0f      /* maximum noise level to use in suppression */  
+#define MIN_NOISE 10.0f       /* minimum value allowed in noise estimation */
+#define MAX_NOISE 80.0f       /* maximum value allowed in noise estimation */
 
 /* Channel I/O constants */
 #define	CHWORDSIZE 6         /* number of bits per channel word */
 #define ERASE_MASK 0x4000    /* erasure flag mask for channel word */
 
-#define GN_QLO 10.0          /* minimum gain in dB */
-#define GN_QUP 77.0          /* maximum gain in dB */
+#define GN_QLO 10.0f          /* minimum gain in dB */
+#define GN_QUP 77.0f          /* maximum gain in dB */
 #define GN_QLEV 32           /* number of second gain quantization levels */
 #define PIT_BITS 7           /* number of bits for pitch coding */
 #define PIT_QLEV 99          /* number of pitch levels */
-#define PIT_QLO 1.30103      /* minimum log pitch for quantization */
-#define PIT_QUP 2.20412      /* maximum log pitch for quantization */
+#define PIT_QLO 1.30103f      /* minimum log pitch for quantization */
+#define PIT_QUP 2.20412f      /* maximum log pitch for quantization */
 #define FS_BITS 8            /* number of bits for Fourier magnitudes */
 #define FS_LEVELS (1<<FS_BITS) /* number of levels for Fourier magnitudes */
 

@@ -114,7 +114,7 @@ void fft(float *datam1,int nn,int isign)
 
 {
 	int	n,mmax,m,j,istep,i;
-	double	wtemp,wr,wpr,wpi,wi,theta;
+	float	wtemp,wr,wpr,wpi,wi,theta;
 	float register	tempr,tempi;
 	float	*data;
 
@@ -139,9 +139,9 @@ void fft(float *datam1,int nn,int isign)
 	while ( n > mmax) {
 	  istep = 2 * mmax;
 	  theta = 6.28318530717959f/(isign*mmax);
-	  wtemp = sin(0.5f*theta);
+	  wtemp = sinf(0.5f*theta);
 	  wpr   = -2.0f*wtemp*wtemp;
-	  wpi   = sin(theta);
+	  wpi   = sinf(theta);
 	  wr = 1.0f;
 	  wi = 0.0f;
 	  for ( m = 1; m < mmax;m+=2) {

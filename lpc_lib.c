@@ -62,8 +62,8 @@ float lpc_aejw(float *a,float w,int p)
             ...[a(p-1)+e(-jw)a(p)]]]]
     */
 
-    cs = (float)cos((double)w);
-    sn = -(float)sin((double)w);
+    cs = (float)cosf(w);
+    sn = -(float)sinf(w);
 
     c_re = cs*a[p];
     c_im = sn*a[p];
@@ -548,7 +548,7 @@ static int lsp_roots(float *w,float **c,int p2)
             x = (g1*x0-g0*x1)/(g1-g0);
 
             /* Evaluate the LSF */
-            w[k] = (float)acos((double)x)/M_PI;
+            w[k] = (float)acosf(x)/M_PI;
 
             ptr = c[k % 2];
             k++;

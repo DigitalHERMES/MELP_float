@@ -29,7 +29,7 @@ Group (phone 972 480 7442).
 #include "mat.h"
 #include "lpc.h"
 
-#define BIGVAL 1E20
+#define BIGVAL 1E20f
 
 /* VQ_LSPW- compute LSP weighting vector-
 
@@ -180,7 +180,7 @@ float vq_ms4(float *cb, float *u, float *u_est, int *levels, int ma, int stages,
             for(i=0,uhatw_sq=0.0; i < p; i++,cbp++)
             {
                 uhatw_sq += *cbp * (tmp = *cbp * w[i]);
-                uhatw[i] = -2.0*tmp;
+                uhatw[i] = -2.0f*tmp;
             }
 
             /* p_e points to the error vectors and p_distortion
@@ -412,8 +412,8 @@ void vq_fsw(float *w_fs, int num_harm, float pitch)
     for(j=0; j < num_harm; j++) {
 
 	/* Bark-scale weighting */
-	w_fs[j] = 117.0 / (25.0 + 75.0*
-			   pow(1.0 + 1.4*SQR(w0*(j+1)/(0.25*PI)),0.69));
+	w_fs[j] = 117.0f / (25.0f + 75.0f*
+			   powf(1.0f + 1.4*SQR(w0*(j+1)/(0.25f*PI)),0.69f));
     }
 
 }

@@ -59,7 +59,7 @@ extern void rewind(FILE *stream);
 #define FALSE           0
 #endif
 #ifndef M_PI
-#define     M_PI    3.14159265358979323846
+#define     M_PI    3.14159265358979323846f
 #endif
 #ifndef PI
 #define PI              M_PI
@@ -68,7 +68,7 @@ extern void rewind(FILE *stream);
 #define TRUE            1
 #endif
 #ifndef TWOPI
-#define TWOPI 6.28318530717958647692
+#define TWOPI 6.28318530717958647692f
 #endif
 
 /*

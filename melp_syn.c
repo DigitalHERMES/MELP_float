@@ -51,7 +51,7 @@ Group (phone 972 480 7442).
 #endif
 
 #define TILT_ORD 1
-#define SYN_GAIN 1000.0
+#define SYN_GAIN 1000.0f
 #define	SCALEOVER	10
 #define PDEL SCALEOVER
 
@@ -161,14 +161,14 @@ void melp_syn(struct melp_param *par, float sp_out[])
     tilt_cof[0] = 1.0;
     lpc_lsp2pred(par->lsf,lpc,LPC_ORD);
     lpc_pred2refl(lpc,sig2,LPC_ORD);
-    if (sig2[1] < 0.0)
-      curr_tilt = 0.5*sig2[1];
+    if (sig2[1] < 0.0f)
+      curr_tilt = 0.5f*sig2[1];
     else
-      curr_tilt = 0.0;
+      curr_tilt = 0.0f;
     
     /* Disable pitch interpolation for high-pitched onsets */
-    if (par->pitch < 0.5*prev_par.pitch && 
-	par->gain[0] > 6.0 + prev_par.gain[NUM_GAINFR-1]) {
+    if (par->pitch < 0.5f*prev_par.pitch && 
+	par->gain[0] > 6.0f + prev_par.gain[NUM_GAINFR-1]) {
 	
 	/* copy current pitch into previous */
 	prev_par.pitch = par->pitch;
@@ -204,11 +204,11 @@ void melp_syn(struct melp_param *par, float sp_out[])
 	/* interpolate gain */
 	if (gaincnt > 1) {
 	    gain = ifact_gain*par->gain[gaincnt-1] + 
-		(1.0-ifact_gain)*par->gain[gaincnt-2];
+		(1.0f-ifact_gain)*par->gain[gaincnt-2];
 	}
 	else {
 	    gain = ifact_gain*par->gain[gaincnt-1] + 
-		(1.0-ifact_gain)*prev_par.gain[NUM_GAINFR-1];
+		(1.0f-ifact_gain)*prev_par.gain[NUM_GAINFR-1];
 	}
 	
 	/* Set overall interpolation path based on gain change */
@@ -218,8 +218,8 @@ void melp_syn(struct melp_param *par, float sp_out[])
 
 	    /* Power surge: use gain adjusted interpolation */
 	    intfact = (gain - prev_par.gain[NUM_GAINFR-1]) / temp;
-	    if (intfact > 1.0)
-		intfact = 1.0;
+	    if (intfact > 1.0f)
+		intfact = 1.0f;
 	    if (intfact < 0.0)
 		intfact = 0.0;
 	}
@@ -233,43 +233,43 @@ void melp_syn(struct melp_param *par, float sp_out[])
 	lpc_lsp2pred(lsf,lpc,LPC_ORD);
 	
 	/* Check signal probability for adaptive spectral enhancement filter */
-	sig_prob = lin_int_bnd(gain,noise_gain+12.0,noise_gain+30.0,
-			       0.0,1.0);
+	sig_prob = lin_int_bnd(gain,noise_gain+12.0f,noise_gain+30.0f,
+			       0.0f,1.0f);
 
 	/* Calculate adaptive spectral enhancement filter coefficients */
-	ase_num[0] = 1.0;
+	ase_num[0] = 1.0f;
 	lpc_bw_expand(lpc,ase_num,sig_prob*ASE_NUM_BW,LPC_ORD);
 	lpc_bw_expand(lpc,ase_den,sig_prob*ASE_DEN_BW,LPC_ORD);
 	tilt_cof[1] = sig_prob*(intfact*curr_tilt + 
-				(1.0-intfact)*prev_tilt);
+				(1.0f-intfact)*prev_tilt);
 	
 	/* interpolate pitch and pulse gain */
-	pitch = intfact*par->pitch + (1.0-intfact)*prev_par.pitch;
-	pulse_gain = SYN_GAIN*sqrt(pitch);
+	pitch = intfact*par->pitch + (1.0f-intfact)*prev_par.pitch;
+	pulse_gain = SYN_GAIN*sqrtf(pitch);
 	
 	/* interpolate pulse and noise coefficients */
-	temp = sqrt(ifact);
+	temp = sqrtf(ifact);
 	interp_array(prev_pcof,curr_pcof,pulse_cof,temp,MIX_ORD+1);
 	interp_array(prev_ncof,curr_ncof,noise_cof,temp,MIX_ORD+1);
 	
 	/* interpolate jitter */
 	jitter = ifact*par->jitter + 
-	    (1.0-ifact)*prev_par.jitter;
+	    (1.0f-ifact)*prev_par.jitter;
 	
 	/* convert gain to linear */
-	gain = pow(10.0,0.05*gain);
+	gain = powf(10.0f,0.05f*gain);
 	
 	/* Set period length based on pitch and jitter */
-	rand_num(&temp,1.0,1);
-	length = pitch * (1.0-jitter*temp) + 0.5;
+	rand_num(&temp,1.0f,1);
+	length = (int) (pitch * (1.0f-jitter*temp) + 0.5f);
 	if (length < PITCHMIN)
 	    length = PITCHMIN;
 	if (length > PITCHMAX)
 	    length = PITCHMAX;
 	
 	/* Use inverse DFT for pulse excitation */
-	fill(fs_real,1.0,length);
-	fs_real[0] = 0.0;
+	fill(fs_real,1.0f,length);
+	fs_real[0] = 0.0f;
 	interp_array(prev_par.fs_mag,par->fs_mag,&fs_real[1],intfact,
 		     NUM_HARM);
 	idft_real(fs_real,&sigbuf[BEGIN],length);
@@ -366,14 +366,14 @@ void melp_syn_init()
 	
     v_zap(prev_par.gain,NUM_GAINFR);
     prev_par.pitch = UV_PITCH;
-    prev_par.lsf[0] = 0.0;
+    prev_par.lsf[0] = 0.0f;
     for (i = 1; i < LPC_ORD+1; i++)
-      prev_par.lsf[i] = prev_par.lsf[i-1] + (1.0/(LPC_ORD+1));
-    prev_par.jitter = 0.0;
+      prev_par.lsf[i] = prev_par.lsf[i-1] + (1.0f/(LPC_ORD+1));
+    prev_par.jitter = 0.0f;
     v_zap(&prev_par.bpvc[0],NUM_BANDS);
-    prev_tilt=0.0;
-    prev_gain = 0.0;
-    prev_scale = 0.0;
+    prev_tilt=0.0f;
+    prev_gain = 0.0f;
+    prev_scale = 0.0f;
     syn_begin = 0;
     noise_gain = MIN_NOISE;
     firstcall = 1;
@@ -425,7 +425,7 @@ void melp_syn_init()
 	
     /* Scale codebook to 0 to 1 */
     if (fsvq_weighted == 0)
-      v_scale(vq_par.cb,(2.0/FSAMP),3200);
+      v_scale(vq_par.cb,(2.0f/FSAMP),3200);
 
     /* 
      * Initialize Fourier magnitude vector quantization (read codebook) 
@@ -455,9 +455,9 @@ void melp_syn_init()
      * Initialize fixed MSE weighting and inverse of weighting 
      */
 	
-    vq_fsw(w_fs, NUM_HARM, 60.0);
+    vq_fsw(w_fs, NUM_HARM, 60.0f);
     for (i = 0; i < NUM_HARM; i++)
-      w_fs_inv[i] = 1.0/w_fs[i];
+      w_fs_inv[i] = 1.0f/w_fs[i];
 
     /* 
      * Pre-weight codebook (assume single stage only) 

@@ -43,11 +43,11 @@ Group (phone 972 480 7442).
 
 #define BEGIN 0
 #define END 1
-#define BWFACT 0.994
-#define PDECAY 0.95
-#define PEAK_THRESH 1.34
-#define PEAK_THR2 1.6
-#define SILENCE_DB 30.0
+#define BWFACT 0.994f
+#define PDECAY 0.95f
+#define PEAK_THRESH 1.34f
+#define PEAK_THR2 1.6f
+#define SILENCE_DB 30.0f
 #define MAX_ORD LPF_ORD
 #define FRAME_BEG (PITCHMAX-(FRAME/2))
 #define FRAME_END (FRAME_BEG+FRAME)
@@ -152,7 +152,7 @@ void melp_ana(float sp_in[],struct melp_param *par)
 				    temp,MIN_GAINFR,2*PITCHMAX);
 	}
 	else {
-	    temp = 1.33*GAINFR - 0.5;
+	    temp = 1.33f*GAINFR - 0.5f;
 	    par->gain[i] = gain_ana(&speech[FRAME_BEG+(i+1)*GAINFR],
 				    temp,0,2*PITCHMAX);
 	}
@@ -183,9 +183,9 @@ void melp_ana(float sp_in[],struct melp_param *par)
     
     /* Quantize logarithmic pitch period */
     /* Reserve all zero code for completely unvoiced */
-    par->pitch = log10(par->pitch);
+    par->pitch = log10f(par->pitch);
     quant_u(&par->pitch,&par->pitch_index,PIT_QLO,PIT_QUP,PIT_QLEV);
-    par->pitch = pow(10.0,par->pitch);
+    par->pitch = powf(10.0f,par->pitch);
     
     /* Quantize gain terms with uniform log quantizer	*/
     q_gain(par->gain, par->gain_index,GN_QLO,GN_QUP,GN_QLEV);
@@ -274,7 +274,7 @@ void melp_ana_init()
     vq_par.cb = msvq_cb;
 	
     /* Scale codebook to 0 to 1 */
-    v_scale(vq_par.cb,(2.0/FSAMP),3200);
+    v_scale(vq_par.cb,(2.0f/FSAMP),3200);
 
     /* Initialize Fourier magnitude vector quantization (read codebook) */
 	

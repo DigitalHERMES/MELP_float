@@ -126,7 +126,7 @@ void bpvc_ana(float speech[], float fpitch[], float bpvc[], float pitch[])
 			*pitch,0,PITCHMIN,PITCHMAX,LMIN);
 					
 	/* reduce envelope correlation */
-	pcorr -= 0.1;
+	pcorr -= 0.1f;
 	
 	if (pcorr > bpvc[j])
 	    bpvc[j] = pcorr;
@@ -185,17 +185,17 @@ void bpvc_ana_init(int fr, int pmin, int pmax, int nbands, int num_p, int lmin)
 /* 4th order Chebychev Type II 60 Hz removal filter */
 /* cutoff=60 Hz, stop=-30 dB */
 static float dc_num[DC_ORD+1] = {    
-      0.92692416,
-     -3.70563834,
-      5.55742893,
-     -3.70563834,
-      0.92692416};
+      0.92692416f,
+     -3.70563834f,
+      5.55742893f,
+     -3.70563834f,
+      0.92692416f};
 static float dc_den[DC_ORD+1] = {
-       1.00000000,
-     -3.84610723,
-      5.55209760,
-     -3.56516069,
-      0.85918839};
+       1.00000000f,
+     -3.84610723f,
+      5.55209760f,
+     -3.56516069f,
+      0.85918839f};
 
 void dc_rmv(float sigin[], float sigout[], float dcdel[], int frame)
 {
@@ -248,7 +248,7 @@ float gain_ana(float sigin[], float pitch, int minlength, int maxlength)
       length = (length/2);
     
     /* Calculate RMS gain in dB */
-    gain = 10.0*log10(0.01 + (v_magsq(&sigin[-(length/2)],length) / length));
+    gain = 10.0f*log10f(0.01f + (v_magsq(&sigin[-(length/2)],length) / length));
     if (gain < MINGAIN)
       gain = MINGAIN;
 
@@ -354,7 +354,7 @@ void noise_sup(float *gain,float noise_gain,float max_noise,float max_atten,floa
     /* Calculate suppression factor */
     gain_lev = *gain - (noise_gain + nfact);
     if (gain_lev > 0.001) {
-	suppress = -10.0*log10(1.0 - pow(10.0,-0.1*gain_lev));
+	suppress = -10.0f*log10f(1.0f - powf(10.0f,-0.1f*gain_lev));
 	if (suppress > max_atten)
 	  suppress = max_atten;
     }
@@ -475,12 +475,12 @@ void q_bpvc_dec(float *bpvc,int *bpvc_index,int uv_flag,int NUM_BANDS)
 */
 
 /* Compile constants */
-#define GAIN_INT_DB 5.0
+#define GAIN_INT_DB 5.0f
 
-void q_gain(float *gain,int *gain_index,float GN_QLO,float GN_QUP,float GN_QLEV)
+void q_gain(float *gain,int *gain_index,float GN_QLO,float GN_QUP,int GN_QLEV)
 
 {
-    static float prev_gain = 0.0;
+    static float prev_gain = 0.0f;
     float temp,temp2;
 
     /* Quantize second gain term with uniform quantizer */
@@ -492,10 +492,10 @@ void q_gain(float *gain,int *gain_index,float GN_QLO,float GN_QUP,float GN_QLEV)
     if (gain[0] > GN_QUP)
       gain[0] = GN_QUP;
     if (fabs(gain[1] - prev_gain) < GAIN_INT_DB && 
-	fabs(gain[0] - 0.5*(gain[1]+prev_gain)) < 3.0) {
+	fabs(gain[0] - 0.5f*(gain[1]+prev_gain)) < 3.0f) {
 
 	/* interpolate and set special code */
-	gain[0] = 0.5*(gain[1]+prev_gain);
+	gain[0] = 0.5f*(gain[1]+prev_gain);
 	gain_index[0] = 0;
     }
     else {
@@ -526,10 +526,10 @@ void q_gain(float *gain,int *gain_index,float GN_QLO,float GN_QUP,float GN_QLEV)
     
 }
 
-void q_gain_dec(float *gain,int *gain_index,float GN_QLO,float GN_QUP,float GN_QLEV)
+void q_gain_dec(float *gain,int *gain_index,float GN_QLO,float GN_QUP,int GN_QLEV)
 {
 
-    static float prev_gain = 0.0;
+    static float prev_gain = 0.0f;
     static int prev_gain_err = 0;
     float temp,temp2;
 
@@ -551,7 +551,7 @@ void q_gain_dec(float *gain,int *gain_index,float GN_QLO,float GN_QUP,float GN_Q
 	  prev_gain_err = 0;
 
 	/* Use interpolated gain value */
-	gain[0] = 0.5*(gain[1]+prev_gain);
+	gain[0] = 0.5f*(gain[1]+prev_gain);
     }
 
     else {
@@ -606,12 +606,12 @@ void scale_adj(float *speech, float gain, float *prev_scale, int length, int SCA
     float scale;
 
     /* Calculate desired scaling factor to match gain level */
-    scale = gain / (sqrt(v_magsq(&speech[0],length) / length) + .01);
+    scale = gain / (sqrtf(v_magsq(&speech[0],length) / length) + .01f);
 
     /* interpolate scale factors for first SCALEOVER points */
     for (i = 1; i < SCALEOVER; i++) {
 	speech[i-1] *= ((scale*i + *prev_scale*(SCALEOVER-i))
-			      * (1.0/SCALEOVER) );
+			      * (1.0f/SCALEOVER) );
     }
     
     /* Scale rest of signal */

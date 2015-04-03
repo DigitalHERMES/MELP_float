@@ -118,7 +118,7 @@ float find_pitch(float sig_in[], float *pcorr, int lower, int upper,
 
     /* Find beginning of correlation window centered on signal */
     ipitch = lower;
-    maxcorr = 0.0;
+    maxcorr = 0.0f;
     even_flag = 1;
     cbegin = - ((length+upper)/2);
     c0_0 = v_magsq(&sig_in[cbegin],length);
@@ -127,7 +127,7 @@ float find_pitch(float sig_in[], float *pcorr, int lower, int upper,
     for (i = upper; i >= lower; i--) {
 	/* calculate normalized crosscorrelation */
 	corr  = v_inner(&sig_in[cbegin],&sig_in[cbegin+i],length);
-	if (corr > 0.01)
+	if (corr > 0.01f)
 	  corr = (corr*corr) / (c0_0*cT_T);
 
 	/* check if current maximum value */
@@ -152,7 +152,7 @@ float find_pitch(float sig_in[], float *pcorr, int lower, int upper,
     }
 
     /* Return full floating point pitch value and correlation*/
-    *pcorr = sqrt(maxcorr);
+    *pcorr = sqrtf(maxcorr);
     return((float) ipitch);
 
 }
@@ -174,8 +174,8 @@ float find_pitch(float sig_in[], float *pcorr, int lower, int upper,
     Copyright (c) 1995 by Texas Instruments, Inc.  All rights reserved.
 */
 
-#define MAXFRAC 2.0
-#define MINFRAC -1.0
+#define MAXFRAC 2.0f
+#define MINFRAC -1.0f
 
 float frac_pch(float sig_in[], float *pcorr, float fpitch, int range, int pmin, int pmax, int lmin)
 
@@ -188,15 +188,15 @@ float frac_pch(float sig_in[], float *pcorr, float fpitch, int range, int pmin, 
 
     /* Perform local integer pitch search for better fpitch estimate */
     if (range > 0) {
-	ipitch = fpitch + 0.5;
+	ipitch = (int) (fpitch + 0.5f);
 	lower = ipitch - range;
 	upper = ipitch + range;
 	if (upper > pmax)
 	  upper = pmax;
 	if (lower < pmin)
 	  lower = pmin;
-	if (lower < 0.75*ipitch)
-	  lower = 0.75*ipitch;
+	if (lower < 0.75f*ipitch)
+	  lower = (int) (0.75f*ipitch);
 	length = ipitch;
 	if (length < lmin)
 	  length = lmin;
@@ -204,7 +204,7 @@ float frac_pch(float sig_in[], float *pcorr, float fpitch, int range, int pmin, 
     }
 
     /* Estimate needed crosscorrelations */
-    ipitch = fpitch + 0.5;
+    ipitch = (int) (fpitch + 0.5f);
     if (ipitch >= pmax)
       ipitch = pmax - 1;
     length = ipitch;
@@ -227,10 +227,10 @@ float frac_pch(float sig_in[], float *pcorr, float fpitch, int range, int pmin, 
 
     /* Find fractional component of pitch within integer range */
     denom = c0_T1*(cT_T - cT_T1) + c0_T*(cT1_T1 - cT_T1);
-    if (fabs(denom) > 0.01) 
+    if (fabs(denom) > 0.01f) 
       frac = (c0_T1*cT_T - c0_T*cT_T1) / denom;
     else
-      frac = 0.5;
+      frac = 0.5f;
     if (frac > MAXFRAC)
       frac = MAXFRAC;
     if (frac < MINFRAC)
@@ -239,19 +239,19 @@ float frac_pch(float sig_in[], float *pcorr, float fpitch, int range, int pmin, 
     /* Make sure pitch is still within range */
     fpitch = ipitch + frac;
     if (fpitch > pmax)
-      fpitch = pmax;
+      fpitch = (float) pmax;
     if (fpitch < pmin)
-      fpitch = pmin;
+      fpitch = (float) pmin;
     frac = fpitch - ipitch;    
 
     /* Calculate interpolated correlation strength */
-    frac1 = 1.0 - frac;
+    frac1 = 1.0f - frac;
     denom = c0_0*(frac1*frac1*cT_T + 2*frac*frac1*cT_T1 + frac*frac*cT1_T1);
-    denom = sqrt(denom);
-    if (fabs(denom) > 0.01)
+    denom = sqrtf(denom);
+    if (fabs(denom) > 0.01f)
       *pcorr = (frac1*c0_T + frac*c0_T1) / denom;
     else
-      *pcorr = 0.0;
+      *pcorr = 0.0f;
 
     /* Return full floating point pitch value */
     return(fpitch);
@@ -296,7 +296,7 @@ float p_avg_update(float pitch, float pcorr, float pthresh)
     /* Otherwise decay good pitch array to default value */
     else {
 	for (i = 0; i < NUM_GOOD; i++)
-	  good_pitch[i] = (PDECAY*good_pitch[i]) +((1.0-PDECAY)*DEFAULT_PITCH_);
+	  good_pitch[i] = (PDECAY*good_pitch[i]) +((1.0f-PDECAY)*DEFAULT_PITCH_);
     }
     
     /* Pitch_avg = median of pitch values */
@@ -336,12 +336,12 @@ void p_avg_init(float pdecay, float default_pitch_, int num_good)
 */
 
 /* Compiler constants */
-#define UVMAX 0.55
-#define PDOUBLE1 0.75
-#define PDOUBLE2 0.5
-#define PDOUBLE3 0.9
-#define PDOUBLE4 0.7
-#define LONG_PITCH 100.0
+#define UVMAX 0.55f
+#define PDOUBLE1 0.75f
+#define PDOUBLE2 0.5f
+#define PDOUBLE3 0.9f
+#define PDOUBLE4 0.7f
+#define LONG_PITCH 100.0f
 
 /* Static constants */
 static int PITCHMAX;
@@ -375,7 +375,7 @@ float pitch_ana(float speech[], float resid[], float pitch_est, float pitch_avg,
     temp = frac_pch(&sigbuf[LPF_ORD+(PITCH_FR/2)],&pcorr,
 		    pitch_est,5,PITCHMIN,PITCHMAX,LMIN);
     
-    if (pcorr < 0.6) {
+    if (pcorr < 0.6f) {
 
 	/* If correlation is too low, try speech signal instead */
 	v_equ(&sigbuf[LPF_ORD],&speech[-PITCHMAX],PITCH_FR);
