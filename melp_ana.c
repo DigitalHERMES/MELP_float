@@ -210,7 +210,7 @@ void melp_ana(float sp_in[],struct melp_param *par)
     window(&par->fs_mag[0],w_fs,&par->fs_mag[0],NUM_HARM);
     fsvq_enc(&par->fs_mag[0], &par->fs_mag[0], fs_vq_par);
     
-    /* Set MELP indeces to point to same array */
+    /* Set MELP indices to point to same array */
     par->fsvq_index = fs_vq_par.indices;
 
     /* Update MSVQ information */

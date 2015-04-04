@@ -27,6 +27,7 @@ Group (phone 972 480 7442).
 #define SYNTHESIS		2
 
 #define RATE2400		2400
+#define RATE1200		1200
 
 
 /*  compiler constants */

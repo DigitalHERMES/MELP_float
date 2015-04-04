@@ -411,9 +411,9 @@ void zerflt(float input[], float coeff[], float output[], int order,int npts)
     float accum;
 
     for (i = npts-1; i >= 0; i-- ) {
-	accum = 0.0;
-	for (j = 0; j <= order; j++ )
-	    accum += input[i-j] * coeff[j];
-	output[i] = accum;
+		accum = 0.0;
+		for (j = 0; j <= order; j++ )
+			accum += input[i-j] * coeff[j];
+		output[i] = accum;
     }
 }

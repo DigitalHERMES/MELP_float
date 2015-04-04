@@ -76,7 +76,7 @@ void melp_chn_write(struct melp_param *par)
     int i, bit_cntr;
     unsigned int *bit_ptr; 
     
-    /* FEC: code additional information in redundant indeces */
+    /* FEC: code additional information in redundant indices */
     fec_code(par);
     
     /*	Fill bit buffer	*/
@@ -86,29 +86,25 @@ void melp_chn_write(struct melp_param *par)
     pack_code(par->gain_index[1],&bit_ptr,&bit_cntr,5,1);
     
     /* Toggle and write sync bit */
-    if (sync_bit)
-	sync_bit = 0;
-    else
-	sync_bit = 1;
+    sync_bit ^= 1;
     pack_code(sync_bit,&bit_ptr,&bit_cntr,1,1);
     pack_code(par->gain_index[0],&bit_ptr,&bit_cntr,3,1);
     pack_code(par->pitch_index,&bit_ptr,&bit_cntr,PIT_BITS,1);
     pack_code(par->jit_index,&bit_ptr,&bit_cntr,1,1);
     pack_code(par->bpvc_index,&bit_ptr,&bit_cntr,NUM_BANDS-1,1);
     
-    for (i = 0; i < par->msvq_stages; i++) 
+	for (i = 0; i < par->msvq_stages; i++) { 
       pack_code(par->msvq_index[i],&bit_ptr,&bit_cntr,par->msvq_bits[i],1);
-    
-    pack_code(par->fsvq_index[0],&bit_ptr,&bit_cntr,
-	      FS_BITS,1);
+	}
+    pack_code(par->fsvq_index[0],&bit_ptr,&bit_cntr, FS_BITS,1);
     
     /*	Write channel output buffer	*/
-    for (i = 0; i < NUM_CH_BITS; i++) {
-	pack_code(bit_buffer[bit_order[i]],&par->chptr,&par->chbit,
-		  1,CHWORDSIZE);
-	if (i == 0)
-	    *(par->chptr) |= 0x8000; /* set beginning of frame bit */
-    }
+//    for (i = 0; i < NUM_CH_BITS; i++) {
+//	pack_code(bit_buffer[bit_order[i]],&par->chptr,&par->chbit,
+//		  1,CHWORDSIZE);
+//	if (i == 0)
+//	    *(par->chptr) |= 0x8000; /* set beginning of frame bit */
+//    }
 
 }
 
@@ -119,12 +115,12 @@ int melp_chn_read(struct melp_param *par, struct melp_param *prev_par)
     unsigned int *bit_ptr; 
 
     /*	Read channel output buffer into bit buffer */
-    bit_ptr = bit_buffer;
-    for (i = 0; i < NUM_CH_BITS; i++) {
-	erase |= unpack_code(&par->chptr,&par->chbit,&bit_buffer[bit_order[i]],
-			     1,CHWORDSIZE,ERASE_MASK);
-	bit_ptr++;
-    }
+//    bit_ptr = bit_buffer;
+//    for (i = 0; i < NUM_CH_BITS; i++) {
+//	erase |= unpack_code(&par->chptr,&par->chbit,&bit_buffer[bit_order[i]],
+//			     1,CHWORDSIZE,ERASE_MASK);
+//	bit_ptr++;
+//    }
 
     /*	Read information from  bit buffer	*/
     bit_ptr = bit_buffer;
@@ -141,12 +137,11 @@ int melp_chn_read(struct melp_param *par, struct melp_param *prev_par)
     unpack_code(&bit_ptr,&bit_cntr,&par->bpvc_index,
 			 NUM_BANDS-1,1,0);
     
-    for (i = 0; i < par->msvq_stages; i++) 
+	for (i = 0; i < par->msvq_stages; i++) {
       unpack_code(&bit_ptr,&bit_cntr,&par->msvq_index[i],
 			   par->msvq_bits[i],1,0);
-
-    unpack_code(&bit_ptr,&bit_cntr,&par->fsvq_index[0],
-			 FS_BITS,1,0);
+	}
+    unpack_code(&bit_ptr,&bit_cntr,&par->fsvq_index[0], FS_BITS,1,0);
     
     /* Clear unvoiced flag */
     par->uv_flag = 0;
@@ -154,8 +149,7 @@ int melp_chn_read(struct melp_param *par, struct melp_param *prev_par)
     erase = fec_decode(par,erase);
     
     /* Decode new frame if no erasures occurred */
-    if (erase) {
-	
+    if (erase) {	
 	/* Erasure: frame repeat */
 		
 	/* Save correct values of pointers */
@@ -177,11 +171,11 @@ int melp_chn_read(struct melp_param *par, struct melp_param *prev_par)
 	if (par->uv_flag)
 	  fill(par->fs_mag,1.,NUM_HARM);
 	else
-	  {	
+	{	
 	      /* Decode Fourier magnitudes */
 	      vq_msd2(fsvq_cb,par->fs_mag,(float*)NULL,(float*)NULL,
 		      par->fsvq_index,&i,1,NUM_HARM,0);
-	  }
+	}
 
 	/* Decode gain terms with uniform log quantizer	*/
 	q_gain_dec(par->gain, par->gain_index,GN_QLO,GN_QUP,GN_QLEV);

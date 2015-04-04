@@ -132,8 +132,8 @@ void melp_syn(struct melp_param *par, float sp_out[])
     erase = melp_chn_read(par,&prev_par);
 
     if (par->uv_flag != 1 && !erase) { 
-	/* Un-weight Fourier magnitudes */
-	window(&par->fs_mag[0],w_fs_inv,&par->fs_mag[0],NUM_HARM);
+		/* Un-weight Fourier magnitudes */
+		window(&par->fs_mag[0],w_fs_inv,&par->fs_mag[0],NUM_HARM);
     }
 
     /* Update adaptive noise level estimate based on last gain	*/
@@ -143,15 +143,13 @@ void melp_syn(struct melp_param *par, float sp_out[])
     }
     
     else if (!erase) {
-	for (i = 0; i < NUM_GAINFR; i++) {
-	    noise_est(par->gain[i],&noise_gain,UPCONST,DOWNCONST,
-		      MIN_NOISE,MAX_NOISE);
+		for (i = 0; i < NUM_GAINFR; i++) {
+			noise_est(par->gain[i],&noise_gain,UPCONST,DOWNCONST,
+				  MIN_NOISE,MAX_NOISE);
 
-	    /* Adjust gain based on noise level (noise suppression) */
-	    noise_sup(&par->gain[i],noise_gain,MAX_NS_SUP,MAX_NS_ATT,NFACT);
-
-	}
-	    
+			/* Adjust gain based on noise level (noise suppression) */
+			noise_sup(&par->gain[i],noise_gain,MAX_NS_SUP,MAX_NS_ATT,NFACT);
+		}   
     }
     
     /* Clamp LSP bandwidths to avoid sharp LPC filters */
@@ -168,10 +166,10 @@ void melp_syn(struct melp_param *par, float sp_out[])
     
     /* Disable pitch interpolation for high-pitched onsets */
     if (par->pitch < 0.5f*prev_par.pitch && 
-	par->gain[0] > 6.0f + prev_par.gain[NUM_GAINFR-1]) {
+			par->gain[0] > 6.0f + prev_par.gain[NUM_GAINFR-1]) {
 	
-	/* copy current pitch into previous */
-	prev_par.pitch = par->pitch;
+		/* copy current pitch into previous */
+		prev_par.pitch = par->pitch;
     }
     
     /* Set pulse and noise coefficients based on voicing strengths */
@@ -187,9 +185,7 @@ void melp_syn(struct melp_param *par, float sp_out[])
     /* Process each pitch period */
     
     while (syn_begin < FRAME) {
-
 	/* interpolate previous and current parameters */
-
 	ifact = ((float) syn_begin ) / FRAME;
 			
 	if (syn_begin >= GAINFR) {
@@ -328,14 +324,12 @@ void melp_syn(struct melp_param *par, float sp_out[])
 	    /* past end: save remainder in sigsave[0] */
 	    v_equ(&sigsave[0],&sigbuf[BEGIN+FRAME-syn_begin],
 		  length-(FRAME-syn_begin));
-	}
-			
+	}			
 	else
 	    v_equ(&sp_out[syn_begin],&sigbuf[BEGIN],length);
 		
-	/* Update syn_begin for next period */
-	syn_begin += length;
-
+		/* Update syn_begin for next period */
+		syn_begin += length;
     }
 		
     /* Save previous pulse and noise filters for next frame */
