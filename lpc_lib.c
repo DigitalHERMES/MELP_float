@@ -212,15 +212,16 @@ int lpc_clmp(float *w, float delta, int p)
     }
 
     /* Debug: check if the minimum separation rule was met */
+#ifdef PRINT		
     for(j=1; j < p; j++)
-      if ((w[j+1]-w[j]) < 0.99*delta)
+      if ((w[j+1]-w[j]) < 0.99f*delta)
           (void)fprintf(stderr,"%s: LSPs not separated by enough (line %d)\n",
               __FILE__,__LINE__);
 
     if (unsorted)
         (void)fprintf(stderr,"%s: LSPs still unsorted (line %d)\n",
 		      __FILE__,__LINE__);
-
+#endif
     return(0);
 }
 
@@ -337,8 +338,8 @@ int lpc_pred2lsp(float *a,float *w,int p)
         c[0][p2-i] = (a[i] + a[p+1-i] - c[0][p2+1-i]);
         c[1][p2-i] = c[1][p2+1-i] + a[i] - a[p+1-i];
     }
-    c[0][0] /= 2.0;
-    c[1][0] /= 2.0;
+    c[0][0] /= 2.0f;
+    c[1][0] /= 2.0f;
 
     i = lsp_roots(w,c,p2);
 
@@ -519,10 +520,10 @@ static int lsp_roots(float *w,float **c,int p2)
     x = 1.0;
     g0 = lsp_g(x,ptr,p2);
 
-    for(k=1,x = 1.0-DELTA; x > -DELTA-1.0; x -= DELTA)
+    for(k=1,x = 1.0f-DELTA; x > -DELTA-1.0f; x -= DELTA)
     {
         /* Search for a zero crossing */
-        if (g0*(g1 = lsp_g(x,ptr,p2)) <= 0.0)
+        if (g0*(g1 = lsp_g(x,ptr,p2)) <= 0.0f)
         {
             /* Search Incrementally using bisection */
             x0 = x+DELTA;
@@ -533,7 +534,7 @@ static int lsp_roots(float *w,float **c,int p2)
                 x = (x0+x1)/2.0f;
                 y = lsp_g(x,ptr,p2);
 
-                if(y*g0 < 0.0)
+                if(y*g0 < 0.0f)
                 {
                     x1 = x;
                     g1 = y;
@@ -558,7 +559,9 @@ static int lsp_roots(float *w,float **c,int p2)
         }
         g0 = g1;
     }
+#ifdef PRINT		
     (void)fprintf(stderr,"\n Error(lsp_roots): LSPs Not All Found\n");
+#endif
     return(1);
 } /* LSP_ROOTS */
 

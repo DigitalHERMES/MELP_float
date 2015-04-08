@@ -72,7 +72,6 @@ static float fs_real[PITCHMAX];
 /* permanent memory */
  
 static int firstcall = 1; /* Just used for noise gain init */
-static int prev_gain_err;
 static float sigsave[PITCHMAX];
 static struct melp_param prev_par;
 static int syn_begin;
@@ -90,7 +89,6 @@ static float w_fs_inv[NUM_HARM];
 /* these can be saved or recomputed */
 static float prev_pcof[MIX_ORD+1],prev_ncof[MIX_ORD+1];
 static float prev_tilt;
-static float prev_gain;
 
 void melp_syn(struct melp_param *par, float sp_out[])
 {
@@ -110,13 +108,13 @@ void melp_syn(struct melp_param *par, float sp_out[])
     
     /* Copy previous period of processed speech to output array */
     if (syn_begin > 0) {
-	if (syn_begin > FRAME) {
-	    v_equ(&sp_out[0],&sigsave[0],FRAME);
-	    /* past end: save remainder in sigsave[0] */
-	    v_equ(&sigsave[0],&sigsave[FRAME],syn_begin-FRAME);
-	}
-	else 
-	  v_equ(&sp_out[0],&sigsave[0],syn_begin);
+		if (syn_begin > FRAME) {
+			v_equ(&sp_out[0],&sigsave[0],FRAME);
+			/* past end: save remainder in sigsave[0] */
+			v_equ(&sigsave[0],&sigsave[FRAME],syn_begin-FRAME);
+		}
+		else 
+		  v_equ(&sp_out[0],&sigsave[0],syn_begin);
     }
     
     erase = 0; /* no erasures yet */
@@ -176,7 +174,7 @@ void melp_syn(struct melp_param *par, float sp_out[])
     v_zap(curr_pcof,MIX_ORD+1);
     v_zap(curr_ncof,MIX_ORD+1);
     for (i = 0; i < NUM_BANDS; i++) {
-	if (par->bpvc[i] > 0.5)
+	if (par->bpvc[i] > 0.5f)
 	    v_add(curr_pcof,&bp_cof[i][0],MIX_ORD+1);
 	else
 	    v_add(curr_ncof,&bp_cof[i][0],MIX_ORD+1);
@@ -216,8 +214,8 @@ void melp_syn(struct melp_param *par, float sp_out[])
 	    intfact = (gain - prev_par.gain[NUM_GAINFR-1]) / temp;
 	    if (intfact > 1.0f)
 		intfact = 1.0f;
-	    if (intfact < 0.0)
-		intfact = 0.0;
+	    if (intfact < 0.0f)
+		intfact = 0.0f;
 	}
 	else
 
@@ -285,7 +283,7 @@ void melp_syn(struct melp_param *par, float sp_out[])
 	zerflt(&sigbuf[BEGIN],pulse_cof,&sigbuf[BEGIN],MIX_ORD,length);
 	
 	/* Get scaled noise excitation */
-	rand_num(&sig2[BEGIN],(1.732*SYN_GAIN),length);
+	rand_num(&sig2[BEGIN],(1.732f*SYN_GAIN),length);
 	
 	/* Filter noise excitation */
 	v_equ(&sig2[BEGIN-MIX_ORD],noise_del,MIX_ORD);
@@ -366,12 +364,10 @@ void melp_syn_init()
     prev_par.jitter = 0.0f;
     v_zap(&prev_par.bpvc[0],NUM_BANDS);
     prev_tilt=0.0f;
-    prev_gain = 0.0f;
     prev_scale = 0.0f;
     syn_begin = 0;
     noise_gain = MIN_NOISE;
     firstcall = 1;
-    prev_gain_err = 0;
     v_zap(pulse_del,MIX_ORD);
     v_zap(noise_del,MIX_ORD);
     v_zap(lpc_del,LPC_ORD);

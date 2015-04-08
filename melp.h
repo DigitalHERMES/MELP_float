@@ -4,7 +4,7 @@
 
 version 1.2
 
-Copyright (c) 1996, Texas Instruments, Inc.  
+Copyright (c) 1996, Texas Instruments, Inc.
 
 Texas Instruments has intellectual property rights on the MELP
 algorithm.  The Texas Instruments contact for licensing issues for
@@ -56,8 +56,6 @@ Group (phone 972 480 7442).
 #define GAINFR (FRAME/NUM_GAINFR)  /* size of gain frame */
 #define MIN_GAINFR 120      /* minimum gain analysis window */
 #define MINLENGTH 160       /* minimum correlation length */
-#define	PI		3.141592654F
-#define	TWOPI		6.283185308F
 #define FSAMP 8000.0F        /* sampling frequency */
 #define MSVQ_M 8            /* M-best for MSVQ search */
 #define MSVQ_MAXCNT 256     /* maximum inner loop counter for MSVQ search */
@@ -69,7 +67,7 @@ Group (phone 972 480 7442).
 #define DOWNCONST -0.135418f  /* noise estimation down time constant */
 #define NFACT 3.0f            /* noise floor boost in dB */
 #define MAX_NS_ATT 6.0f       /* maximum noise suppression */
-#define MAX_NS_SUP 20.0f      /* maximum noise level to use in suppression */  
+#define MAX_NS_SUP 20.0f      /* maximum noise level to use in suppression */
 #define MIN_NOISE 10.0f       /* minimum value allowed in noise estimation */
 #define MAX_NOISE 80.0f       /* maximum value allowed in noise estimation */
 
@@ -121,4 +119,14 @@ __declspec(dllexport) void __cdecl melp_chn_write(struct melp_param *par);
 
 __declspec(dllexport) void __cdecl fec_code(struct melp_param *par);
 __declspec(dllexport) int  __cdecl fec_decode(struct melp_param *par, int erase);
+#else
+void  melp_ana(float sp_in[],struct melp_param *par);
+void  melp_syn(struct melp_param *par, float sp_out[]);
+void  melp_ana_init(void);
+void  melp_syn_init(void);
+int   melp_chn_read(struct melp_param *par, struct melp_param *prev_par);
+void  melp_chn_write(struct melp_param *par);
+
+void  fec_code(struct melp_param *par);
+int   fec_decode(struct melp_param *par, int erase);
 #endif

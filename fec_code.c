@@ -129,9 +129,10 @@ int fec_decode(struct melp_param *par, int erase)
 ** pitch index INVAL_PIND.  Otherwise, convert pitch index into quantization
 ** level.
 */
-    if (!(par->uv_flag = par->pitch_index == UV_PIND) &&
-	!(erase |= par->pitch_index == INVAL_PIND))
-	par->pitch_index-=2; /* Subtract to acct. for reserved pitch codes.*/
+		par->uv_flag = (par->pitch_index == UV_PIND);
+		erase |= (par->pitch_index == INVAL_PIND);
+    if (!par->uv_flag && !erase )
+				par->pitch_index-=2; /* Subtract to acct. for reserved pitch codes.*/
 
     if (par->uv_flag && !erase)
 /*

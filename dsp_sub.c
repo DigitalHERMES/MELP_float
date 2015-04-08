@@ -30,7 +30,7 @@ Group (phone 972 480 7442).
 #include "mat.h"
 
 typedef short SPEECH;
-#define PRINT 1 
+// #define PRINT 1
 
 /*								*/
 /*	Subroutine autocorr: calculate autocorrelations         */

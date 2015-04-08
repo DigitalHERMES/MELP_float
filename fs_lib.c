@@ -30,7 +30,7 @@ Group (phone 972 480 7442).
 #include "fs.h"
 
 /*  compiler constants */
-#define PRINT 1
+// #define PRINT 1
 
 /*								*/
 /*	Subroutine FIND_HARM: find Fourier coefficients using	*/
@@ -138,21 +138,21 @@ void fft(float *datam1,int nn,int isign)
 	mmax = 2;
 	while ( n > mmax) {
 	  istep = 2 * mmax;
-	  theta = 6.28318530717959f/(isign*mmax);
-	  wtemp = sinf(0.5f*theta);
-	  wpr   = -2.0f*wtemp*wtemp;
+	  theta = 2 * M_PI/(isign * mmax);
+	  wtemp = sinf(0.5f * theta);
+	  wpr   = -2.0f * wtemp * wtemp;
 	  wpi   = sinf(theta);
 	  wr = 1.0f;
 	  wi = 0.0f;
 	  for ( m = 1; m < mmax;m+=2) {
 	    for ( i = m; i <= n; i += istep) {
    	      	j = i + mmax;
-		tempr = wr * data[j] - wi * data[j+1];
+			tempr = wr * data[j] - wi * data[j+1];
 	      	tempi = wr * data[j+1] + wi * data[j];
-	   	data[j] = data[i] - tempr;
-		data[j+1] = data[i+1] - tempi;
-		data[i] += tempr;
-		data[i+1] += tempi;
+	   		data[j] = data[i] - tempr;
+			data[j+1] = data[i+1] - tempi;
+			data[i] += tempr;
+			data[i+1] += tempi;
 	    }
 	    wr = (wtemp=wr)*wpr-wi*wpi+wr;
 	    wi = wi*wpr+wtemp*wpi+wi;
@@ -209,28 +209,28 @@ void	idft_real(float real[], float signal[], int length)
 #endif
     
     length2 = (length/2)+1;
-    w = TWOPI / length;
+    w = 2 * M_PI / length;
     for (i = 0; i < length; i++ ) {
-	idftc[i] = cosf(w*i);
+		idftc[i] = cosf(w*i);
     }
     real[0] *= (1.0f/length);
     for (i = 1; i < length2-1; i++ ) {
-	real[i] *= (2.0f/length);
+		real[i] *= (2.0f/length);
     }
     if ((i*2) == length)
-	real[i] *= (1.0f/length);
+		real[i] *= (1.0f/length);
     else
-	real[i] *= (2.0f/length);
+		real[i] *= (2.0f/length);
 
     for (i = 0; i < length; i++ ) {
-	signal[i] = real[0];
-	k_inc = i;
-	k = k_inc;
-	for (j = 1; j < length2; j++ ) {
-	    signal[i] += real[j] * idftc[k];
-	    k += k_inc;
-	    if (k >= length)
-		k -= length;
-	}
+		signal[i] = real[0];
+		k_inc = i;
+		k = k_inc;
+		for (j = 1; j < length2; j++ ) {
+			signal[i] += real[j] * idftc[k];
+			k += k_inc;
+			if (k >= length)
+			k -= length;
+		}
     }
 }

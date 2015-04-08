@@ -230,7 +230,7 @@ void dc_rmv(float sigin[], float sigout[], float dcdel[], int frame)
     Copyright (c) 1995 by Texas Instruments, Inc.  All rights reserved.
 */
 
-#define MINGAIN 0.0
+#define MINGAIN 0.0f
 
 float gain_ana(float sigin[], float pitch, int minlength, int maxlength)
 {
@@ -243,7 +243,7 @@ float gain_ana(float sigin[], float pitch, int minlength, int maxlength)
       flength += pitch;
 
     /* Convert window length to integer and check against maximum */
-    length = (int)(flength + 0.5);
+    length = (int)(flength + 0.5f);
     if (length > maxlength)
       length = (length/2);
     
@@ -353,7 +353,7 @@ void noise_sup(float *gain,float noise_gain,float max_noise,float max_atten,floa
 
     /* Calculate suppression factor */
     gain_lev = *gain - (noise_gain + nfact);
-    if (gain_lev > 0.001) {
+    if (gain_lev > 0.001f) {
 	suppress = -10.0f*log10f(1.0f - powf(10.0f,-0.1f*gain_lev));
 	if (suppress > max_atten)
 	  suppress = max_atten;
@@ -509,8 +509,8 @@ void q_gain(float *gain,int *gain_index,float GN_QLO,float GN_QUP,int GN_QLEV)
 	    temp = gain[1];
 	    temp2 = prev_gain;
 	}
-	temp -= 6.0;
-	temp2 += 6.0;
+	temp -= 6.0f;
+	temp2 += 6.0f;
 	if (temp < GN_QLO)
 	  temp = GN_QLO;
 	if (temp2 > GN_QUP)
@@ -567,8 +567,8 @@ void q_gain_dec(float *gain,int *gain_index,float GN_QLO,float GN_QUP,int GN_QLE
 	    temp = gain[1];
 	    temp2 = prev_gain;
 	}
-	temp -= 6.0;
-	temp2 += 6.0;
+	temp -= 6.0f;
+	temp2 += 6.0f;
 	if (temp < GN_QLO)
 	  temp = GN_QLO;
 	if (temp2 > GN_QUP)

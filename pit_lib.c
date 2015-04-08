@@ -315,7 +315,7 @@ void p_avg_init(float pdecay, float default_pitch_, int num_good)
     NUM_GOOD = num_good;
 
     /* Allocate and initialize good pitch array */
-    MEM_ALLOC(malloc,good_pitch,NUM_GOOD,float);
+    MEM_ALLOC(MALLOC,good_pitch,NUM_GOOD,float);
     fill(good_pitch,DEFAULT_PITCH_,NUM_GOOD);
 
 }
@@ -437,9 +437,9 @@ void pitch_ana_init(int pmin, int pmax, int fr, int lpf_ord, int lmin)
     PITCH_FR = ((2*PITCHMAX)+1);
 
     /* Allocate and initialize delay memory */
-    MEM_ALLOC(malloc,lpres_del,LPF_ORD,float);
+    MEM_ALLOC(MALLOC,lpres_del,LPF_ORD,float);
     v_zap(lpres_del,LPF_ORD);
 
     /* Allocate scratch buffer */
-    MEM_ALLOC(malloc,sigbuf,LPF_ORD+PITCH_FR,float);
+    MEM_ALLOC(MALLOC,sigbuf,LPF_ORD+PITCH_FR,float);
 }

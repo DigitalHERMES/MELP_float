@@ -33,85 +33,48 @@ Group (phone 972 480 7442).
 #include <string.h>
 #include <math.h>
 
-/* OSTYPE-dependent definitions/macros. */
-
-#ifdef SunOS4
-
-/* some standard C function definitions missing from SunOS4 */
-extern int fclose(FILE *stream);
-extern int fprintf(FILE *stream, const char *format, ...);
-extern size_t fread(void *ptr, size_t size, size_t nobj, FILE *stream);
-extern int fseek(FILE *stream, long offset, int origin);
-extern size_t fwrite(const void *ptr, size_t size, size_t nobj, FILE *stream);
-extern int printf(const char *format, ...);
-extern long random(void);
-extern int sscanf (char *s, const char *format, ...);
-extern void rewind(FILE *stream);
-
-#else
-
+#ifndef _WIN32
+#include <cmsis_os.h>
 #endif
+/* OSTYPE-dependent definitions/macros. */
 
 /*
 ** Constant definitions.
 */
+#ifndef TRUE
+#define TRUE            1
+#endif
 #ifndef FALSE
 #define FALSE           0
 #endif
 #ifndef M_PI
-#define     M_PI    3.14159265358979323846f
-#endif
-#ifndef PI
-#define PI              M_PI
-#endif
-#ifndef TRUE
-#define TRUE            1
-#endif
-#ifndef TWOPI
-#define TWOPI 6.28318530717958647692f
+#define M_PI  3.14159265358979323846f
 #endif
 
 /*
 ** Macros.
 */
-
-#ifndef FREE
-#define FREE(v)         if(v)(void)free((void*)(v))
-#endif
-#ifndef program_abort
-#define program_abort(s1,s2,i1,i2) (void)fprintf(stderr,"%s: %s (instance %d, line %d)",s1,s2,i1,i2),exit(1)
-#endif
 #ifndef SQR
 #define SQR(x)          ((x)*(x))
 #endif
 
 /* Generic memory allocation/deallocation macros. */
-
-#define MEM_ALLOC(alloc_routine, v, n, type) \
-        if(((v) = (type*) alloc_routine((n) * sizeof(type)))!=NULL)\
-                ; else program_abort(__FILE__,"MEM_ALLOC",0,__LINE__)
+#define MEM_ALLOC(alloc_routine, v, n, type)   (v) = (type*) alloc_routine((n) * sizeof(type))
 #define MEM_2ALLOC(alloc_routine,v,n,k,type) \
-                if((v=(type**)alloc_routine(sizeof(type*)*(n)))!=NULL\
-		   &&(v[0]=(type*)alloc_routine(sizeof(type)*(n)*(k)))!=NULL)\
-                     {int u__i; for(u__i=1; u__i < n; u__i++)\
-                                v[u__i] = &v[u__i-1][k];\
-                     }\
-                else\
-                        program_abort(__FILE__,"MEM_2ALLOC",0,__LINE__)
+	do { \
+		v = (type**)alloc_routine((n) * sizeof(type*)); v[0]=(type*) alloc_routine((n)*(k)*sizeof(type));\
+		{int u__i; for(u__i=1; u__i < n; u__i++) v[u__i] = &v[u__i-1][k]; } \
+	} while(0)
 
-#define MEM_FREE(free_routine, v) \
-    free_routine(v)
-#define MEM_2FREE(free_routine, v) \
-    if (1) { free_routine((v)[0]); free_routine(v); } else exit(1)
+#define MEM_FREE(free_routine, v) free_routine(v)
+#define MEM_2FREE(free_routine, v) do { free_routine((v)[0]); free_routine(v); } while(0)
 
-/* lint-dependent macros. */
-
-#ifdef lint
-#define MALLOC(n)   (malloc((unsigned)(n)),NULL)
-#define VA_ARG(v,type) (v,(type)NULL)
-#else
+#ifdef _WIN32
 #define MALLOC(n)   malloc((unsigned)(n))
-#define VA_ARG(v,type) va_arg(v,type)
+#define FREE(v)     free((void*)(v))
+#else
+#define MALLOC(n)   osAlloc((unsigned)(n))
+#define FREE(v)     osFree((void*)(v))
 #endif
 
 #endif /* #ifndef _spbstd_h */

@@ -408,12 +408,12 @@ void vq_fsw(float *w_fs, int num_harm, float pitch)
     float w0;
 
     /* Calculate fundamental frequency */
-    w0 = TWOPI/pitch;    
+    w0 = 2 * M_PI/pitch;    
     for(j=0; j < num_harm; j++) {
 
 	/* Bark-scale weighting */
-	w_fs[j] = 117.0f / (25.0f + 75.0f*
-			   powf(1.0f + 1.4*SQR(w0*(j+1)/(0.25f*PI)),0.69f));
+	w_fs[j] = 117.0f / (25.0f + 75.0f *
+			   powf(1.0f + 1.4f * SQR(w0 * (j+1) / (0.25f * M_PI)), 0.69f));
     }
 
 }
