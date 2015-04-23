@@ -28,6 +28,7 @@ Group (phone 972 480 7442).
 #include "vq.h"
 #include "mat.h"
 #include "lpc.h"
+#include "melp.h"
 
 #define BIGVAL 1E20f
 
@@ -85,24 +86,32 @@ float *vq_lspw(float *w,float *lsp,float *a,int p)
 
 #define P_SWAP(x,y,type) do{type u__p;u__p = x;x = y;y = u__p;}while(0)
 
+static int indices[2 * MSVQ_M * 4];
+static int parents[2 * MSVQ_M];
+static float errors[2 * MSVQ_M * 10];
+static float uhatw[10];
+static float d[2 * MSVQ_M];
+static float u_tmp[10+1];
+static float uhat[LPC_ORD];
+
 float vq_ms4(float *cb, float *u, float *u_est, int *levels, int ma, int stages, int p, float *w, float *u_hat, int *a_indices,int max_inner)
 {
-    float tmp,*u_tmp,*uhatw,uhatw_sq;
+    float tmp, uhatw_sq;
     float d_cj,d_opt;
-    float *d,*p_d,*n_d,*p_distortion,*cb_currentstage,*cbp;
-    float *errors,*p_errors,*n_errors,*p_e;
+    float *p_d,*n_d,*p_distortion,*cb_currentstage,*cbp;
+    float *p_errors,*n_errors,*p_e;
     int i,j,m,s,c,p_max,inner_counter;
-    int *indices,*p_indices,*n_indices;
-    int *parents,*p_parents,*n_parents;
+    int *p_indices,*n_indices;
+    int *p_parents,*n_parents;
 
     /* allocate memory for the current node and
        parent node (thus, the factors of two everywhere)
        The parents and current nodes are allocated contiguously */
-    MEM_ALLOC(MALLOC,indices,2*ma*stages,int);
-    MEM_ALLOC(MALLOC,errors,2*ma*p,float);
-    MEM_ALLOC(MALLOC,uhatw,p,float);
-    MEM_ALLOC(MALLOC,d,2*ma,float);
-    MEM_ALLOC(MALLOC,parents,2*ma,int);
+    // MEM_ALLOC(MALLOC,indices,2*ma*stages,int);
+    // MEM_ALLOC(MALLOC,errors,2*ma*p,float);
+    // MEM_ALLOC(MALLOC,uhatw,p,float);
+    // MEM_ALLOC(MALLOC,d,2*ma,float);
+    // MEM_ALLOC(MALLOC,parents,2*ma,int);
 
     /* initialize memory */
     v_zap_int(indices,2*stages*ma);
@@ -121,9 +130,8 @@ float vq_ms4(float *cb, float *u, float *u_est, int *levels, int ma, int stages,
     p_parents = &parents[0];
     n_parents = &parents[ma];
 
-    /* u_tmp is the input vector (i.e. if u_est is non-null, it
-       is subtracted off) */
-    MEM_ALLOC(MALLOC,u_tmp,p+1,float);
+    /* u_tmp is the input vector (i.e. if u_est is non-null, it is subtracted off) */
+    // MEM_ALLOC(MALLOC,u_tmp,p+1,float);
     (void)v_equ(u_tmp,u,p);
     if (u_est)
     {
@@ -143,7 +151,7 @@ float vq_ms4(float *cb, float *u, float *u_est, int *levels, int ma, int stages,
     }
 
     /* no longer need memory so free it here */
-    MEM_FREE(FREE,u_tmp);
+    // MEM_FREE(FREE,u_tmp);
 
     /* codebook pointer is set to point to first stage */
     cbp = cb;
@@ -288,11 +296,11 @@ float vq_ms4(float *cb, float *u, float *u_est, int *levels, int ma, int stages,
         }
     }
 
-    MEM_FREE(FREE,parents);
-    MEM_FREE(FREE,d);
-    MEM_FREE(FREE,uhatw);
-    MEM_FREE(FREE,errors);
-    MEM_FREE(FREE,indices);
+    // MEM_FREE(FREE,parents);
+    // MEM_FREE(FREE,d);
+    // MEM_FREE(FREE,uhatw);
+    // MEM_FREE(FREE,errors);
+    // MEM_FREE(FREE,indices);
 
     return(d_opt);
 }
@@ -330,7 +338,7 @@ float *vq_msd2(float *cb, float *u, float *u_est, float *a, int *indices, int *l
     /* allocate memory (if required) */
     if (u==(float*)NULL)
     {
-        MEM_ALLOC(MALLOC,u_hat,p,float);
+        u_hat = uhat; // MEM_ALLOC(MALLOC,u_hat,p,float);
     }
     else
         u_hat = u;

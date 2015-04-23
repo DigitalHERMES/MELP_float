@@ -39,23 +39,6 @@ Group (phone 972 480 7442).
 #include "melp_sub.h"
 #include "dsp_sub.h"
 
-/* compiler constants */
-
-#define BEGIN 0
-#define END 1
-#define BWFACT 0.994f
-#define PDECAY 0.95f
-#define PEAK_THRESH 1.34f
-#define PEAK_THR2 1.6f
-#define SILENCE_DB 30.0f
-#define MAX_ORD LPF_ORD
-#define FRAME_BEG (PITCHMAX-(FRAME/2))
-#define FRAME_END (FRAME_BEG+FRAME)
-#define PITCH_BEG (FRAME_END-PITCHMAX)
-#define PITCH_FR ((2*PITCHMAX)+1)
-#define IN_BEG (PITCH_BEG+PITCH_FR-FRAME)
-#define SIG_LENGTH (LPF_ORD+PITCH_FR)
-
 /* external memory references */
  
 extern float win_cof[LPC_FRAME];
@@ -74,7 +57,15 @@ static float lpfsp_del[LPF_ORD];
 static float pitch_avg;
 static float fpitch[2];
 static struct msvq_param vq_par;  /* MSVQ parameters */
+static int vq_par_num_levels[4];
+static int vq_par_indices[4];
+static int vq_par_num_bits[4];
+
 static struct msvq_param fs_vq_par;  /* Fourier series VQ parameters */
+static int fs_vq_par_num_levels[1];
+static int fs_vq_par_indices[1];
+static int fs_vq_par_num_bits[1];
+
 static float w_fs[NUM_HARM];
 
 	
@@ -100,7 +91,7 @@ void melp_ana(float sp_in[],struct melp_param *par)
     
     /* Perform global pitch search at frame end on lowpass speech signal */
     /* Note: avoid short pitches due to formant tracking */
-    fpitch[END] = find_pitch(&sigbuf[LPF_ORD+(PITCH_FR/2)],&temp,
+    fpitch[1] = find_pitch(&sigbuf[LPF_ORD+(PITCH_FR/2)],&temp,
 			     (2*PITCHMIN),PITCHMAX,PITCHMAX);
     
     /* Perform bandpass voicing analysis for end of frame */
@@ -222,7 +213,7 @@ void melp_ana(float sp_in[],struct melp_param *par)
 
     /* Update delay buffers for next frame */
     v_equ(&speech[0],&speech[FRAME],IN_BEG);
-    fpitch[BEGIN] = fpitch[END];
+    fpitch[0] = fpitch[1];
 }
 
 
@@ -238,8 +229,8 @@ void melp_ana_init()
     int j;
 
     bpvc_ana_init(FRAME,PITCHMIN,PITCHMAX,NUM_BANDS,2,MINLENGTH);
-    pitch_ana_init(PITCHMIN,PITCHMAX,FRAME,LPF_ORD,MINLENGTH);
-    p_avg_init(PDECAY,DEFAULT_PITCH_,3);
+    pitch_ana_init();
+    p_avg_init();
 
     v_zap(speech,IN_BEG+FRAME);
     pitch_avg=DEFAULT_PITCH_;
@@ -257,9 +248,9 @@ void melp_ana_init()
      * and for number of bits per stage 
      */
  
-    MEM_ALLOC(MALLOC,vq_par.num_levels,vq_par.num_stages,int);
-    MEM_ALLOC(MALLOC,vq_par.indices,vq_par.num_stages,int);
-    MEM_ALLOC(MALLOC,vq_par.num_bits,vq_par.num_stages,int);
+    vq_par.num_levels = vq_par_num_levels;		// MEM_ALLOC(MALLOC,vq_par.num_levels,vq_par.num_stages,int);
+    vq_par.indices = vq_par_indices;			// MEM_ALLOC(MALLOC,vq_par.indices,vq_par.num_stages,int);
+    vq_par.num_bits = vq_par_num_bits;			// MEM_ALLOC(MALLOC,vq_par.num_bits,vq_par.num_stages,int);
 	
     vq_par.num_levels[0] = 128;
     vq_par.num_levels[1] = 64;
@@ -287,9 +278,9 @@ void melp_ana_init()
      * and for number of bits per stage 
      */
  
-    MEM_ALLOC(MALLOC,fs_vq_par.num_levels,fs_vq_par.num_stages,int);
-    MEM_ALLOC(MALLOC,fs_vq_par.indices,fs_vq_par.num_stages,int);
-    MEM_ALLOC(MALLOC,fs_vq_par.num_bits,fs_vq_par.num_stages,int);
+    fs_vq_par.num_levels = fs_vq_par_num_levels;			// MEM_ALLOC(MALLOC,fs_vq_par.num_levels,fs_vq_par.num_stages,int);
+    fs_vq_par.indices = fs_vq_par_indices;					// MEM_ALLOC(MALLOC,fs_vq_par.indices,fs_vq_par.num_stages,int);
+    fs_vq_par.num_bits = fs_vq_par_num_bits;				// MEM_ALLOC(MALLOC,fs_vq_par.num_bits,fs_vq_par.num_stages,int);
 
     fs_vq_par.num_levels[0] = FS_LEVELS;
     fs_vq_par.num_bits[0] = FS_BITS;

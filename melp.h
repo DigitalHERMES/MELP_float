@@ -45,7 +45,7 @@ Group (phone 972 480 7442).
 #define ENV_ORD 2           /* bandpass envelope filter order */
 #define MIX_ORD 32          /* mixed excitation filtering order */
 #define DISP_ORD 64         /* pulse dispersion filter order */
-#define DEFAULT_PITCH_ 50.0  /* default pitch value */
+#define DEFAULT_PITCH_ 50.0F  /* default pitch value */
 #define UV_PITCH 50         /* unvoiced pitch value */
 #define VMIN 0.8F            /* minimum strongly voiced correlation */
 #define VJIT 0.5F            /* jitter threshold for correlations */
@@ -84,6 +84,46 @@ Group (phone 972 480 7442).
 #define PIT_QUP 2.20412f      /* maximum log pitch for quantization */
 #define FS_BITS 8            /* number of bits for Fourier magnitudes */
 #define FS_LEVELS (1<<FS_BITS) /* number of levels for Fourier magnitudes */
+
+/* compiler constants */
+
+#define BWFACT 0.994f
+#define PDECAY 0.95f
+#define PEAK_THRESH 1.34f
+#define PEAK_THR2 1.6f
+#define SILENCE_DB 30.0f
+#define MAX_ORD LPF_ORD
+#define FRAME_BEG (PITCHMAX-(FRAME/2))
+#define FRAME_END (FRAME_BEG+FRAME)
+#define PITCH_BEG (FRAME_END-PITCHMAX)
+#define PITCH_FR ((2*PITCHMAX)+1)
+#define IN_BEG (PITCH_BEG+PITCH_FR-FRAME)
+#define SIG_LENGTH (LPF_ORD+PITCH_FR)
+
+#define NUM_GOOD 3
+
+/* compiler constants */
+ 
+#if (MIX_ORD > DISP_ORD)
+#define BEGIN MIX_ORD
+#else
+#define BEGIN DISP_ORD
+#endif
+
+#define TILT_ORD 1
+#define SYN_GAIN 1000.0f
+#define	SCALEOVER	10
+#define PDEL SCALEOVER
+
+/* Compiler constants */
+#define UVMAX 0.55f
+#define PDOUBLE1 0.75f
+#define PDOUBLE2 0.5f
+#define PDOUBLE3 0.9f
+#define PDOUBLE4 0.7f
+#define LONG_PITCH 100.0f
+#define PITCH_FR  ((2*PITCHMAX)+1)
+
 
 /* Structure definitions */
 struct melp_param {         /* MELP parameters */

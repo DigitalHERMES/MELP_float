@@ -42,19 +42,6 @@ Group (phone 972 480 7442).
 #include "dsp_sub.h"
 #include "melp_sub.h"
 
-/* compiler constants */
- 
-#if (MIX_ORD > DISP_ORD)
-#define BEGIN MIX_ORD
-#else
-#define BEGIN DISP_ORD
-#endif
-
-#define TILT_ORD 1
-#define SYN_GAIN 1000.0f
-#define	SCALEOVER	10
-#define PDEL SCALEOVER
-
 /* external memory references */
  
 extern float bp_cof[NUM_BANDS][MIX_ORD+1];
@@ -81,9 +68,16 @@ static float pulse_del[MIX_ORD],noise_del[MIX_ORD];
 static float lpc_del[LPC_ORD],ase_del[LPC_ORD],tilt_del[TILT_ORD];
 static float disp_del[DISP_ORD];
 
-static struct msvq_param vq_par;  /* MSVQ parameters */
+static msvq_param_t vq_par;  /* MSVQ parameters */
+static int vq_par_num_levels[4];
+static int vq_par_indices[4];
+static int vq_par_num_bits[4];
 
-static struct msvq_param fs_vq_par;  /* Fourier series VQ parameters */
+static msvq_param_t fs_vq_par;  /* Fourier series VQ parameters */
+static int fs_vq_par_num_levels[1];
+static int fs_vq_par_indices[1];
+static int fs_vq_par_num_bits[1];
+
 static float w_fs_inv[NUM_HARM];
 
 /* these can be saved or recomputed */
@@ -396,9 +390,9 @@ void melp_syn_init()
      * and for number of bits per stage 
      */
  
-    MEM_ALLOC(MALLOC,vq_par.num_levels,vq_par.num_stages,int);
-    MEM_ALLOC(MALLOC,vq_par.indices,vq_par.num_stages,int);
-    MEM_ALLOC(MALLOC,vq_par.num_bits,vq_par.num_stages,int);
+    vq_par.num_levels = vq_par_num_levels;	// MEM_ALLOC(MALLOC,vq_par.num_levels,vq_par.num_stages,int);
+    vq_par.indices = vq_par_indices;		// MEM_ALLOC(MALLOC,vq_par.indices,vq_par.num_stages,int);
+    vq_par.num_bits = vq_par_num_bits;		// MEM_ALLOC(MALLOC,vq_par.num_bits,vq_par.num_stages,int);
 
 	
     vq_par.num_levels[0] = 128;
@@ -430,9 +424,9 @@ void melp_syn_init()
      * and for number of bits per stage 
      */
  
-    MEM_ALLOC(MALLOC,fs_vq_par.num_levels,fs_vq_par.num_stages,int);
-    MEM_ALLOC(MALLOC,fs_vq_par.indices,fs_vq_par.num_stages,int);
-    MEM_ALLOC(MALLOC,fs_vq_par.num_bits,fs_vq_par.num_stages,int);
+    fs_vq_par.num_levels = fs_vq_par_num_levels;		// MEM_ALLOC(MALLOC,fs_vq_par.num_levels,fs_vq_par.num_stages,int);
+    fs_vq_par.indices = fs_vq_par_indices;				// MEM_ALLOC(MALLOC,fs_vq_par.indices,fs_vq_par.num_stages,int);
+    fs_vq_par.num_bits = fs_vq_par_num_bits;			// MEM_ALLOC(MALLOC,fs_vq_par.num_bits,fs_vq_par.num_stages,int);
 
 	
     fs_vq_par.num_levels[0] = FS_LEVELS;

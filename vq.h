@@ -31,7 +31,7 @@ float *vq_msd2(float *cb, float *u, float *u_est, float *a, int *indices,
 float *vq_lspw(float *w,float *lsp,float *a,int p);
 
 /* Structure definition */
-struct msvq_param {         /* Multistage VQ parameters */
+typedef struct msvq_param {         /* Multistage VQ parameters */
     int num_stages;
     int *num_levels;
     int *num_bits;
@@ -40,7 +40,7 @@ struct msvq_param {         /* Multistage VQ parameters */
     int *indices;
     char *fname_cb;
     float *cb;
-};
+}msvq_param_t;
 
 /* External function definitions */
 
@@ -53,11 +53,6 @@ struct msvq_param {         /* Multistage VQ parameters */
     vq_enc(par.cb,u,*(par.num_levels),\
 	  par.dimension,u_hat,\
 	  par.indices)
-
-#define msvq_dec(u,par)\
-    vq_msd2(par.cb,u,(float*)NULL,(float*)NULL,par.indices,par.num_levels,par.num_stages,par.dimension,0)
-
-void msvq_init(struct msvq_param *par);
 
 float vq_enc(float *cb, float *u, int levels, int p, float *u_hat, int *indices);
 
