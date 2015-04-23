@@ -50,7 +50,7 @@ static float fs_real[PITCHMAX];
 
 /* permanent memory */ 
 static int firstcall = 1; /* Just used for noise gain init */
-static float sigsave[PITCHMAX];
+static float sigsave[2*PITCHMAX];
 static struct melp_param prev_par;
 static int syn_begin;
 static float prev_scale;
@@ -361,7 +361,7 @@ void melp_syn_init()
     v_zap(disp_del,DISP_ORD);
     v_zap(sig2,BEGIN+PITCHMAX);
     v_zap(sigbuf,BEGIN+PITCHMAX);
-    v_zap(sigsave,PITCHMAX);
+    v_zap(sigsave,2*PITCHMAX);
     v_zap(prev_pcof,MIX_ORD+1);
     v_zap(prev_ncof,MIX_ORD+1);
     prev_ncof[MIX_ORD/2] = 1.0;

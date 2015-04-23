@@ -20,7 +20,7 @@ Group (phone 972 480 7442).
 /*                                                                  */
 
 /*  compiler flags */
-#define PRINT 1             /* warning message flag */
+// #define PRINT 1             /* warning message flag */
 
 #define ANA_SYN			0
 #define ANALYSIS		1
