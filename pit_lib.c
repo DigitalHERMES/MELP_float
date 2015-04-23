@@ -34,7 +34,11 @@ Group (phone 972 480 7442).
 /*  double_chk.c: check for pitch doubling                          */
 /*  and also verify pitch multiple for short pitches.               */
 /*                                                                  */
-#define NUM_MULT 8
+
+/* Static data */
+static float lpres_del[LPF_ORD];
+static float sigbuf[LPF_ORD+PITCH_FR];
+
 
 float double_chk(float sig_in[], float *pcorr, float pitch, float pdouble, int pmin, int pmax, int lmin)
 
@@ -70,15 +74,13 @@ float double_chk(float sig_in[], float *pcorr, float pitch, float pdouble, int p
 
     /* Return full floating point pitch value and correlation*/
     return(pitch);
-
 }
-#undef NUM_MULT
 
 
 /*                                                                  */
 /*  double_ver.c: verify pitch multiple for short pitches.          */
 /*                                                                  */
-#define SHORT_PITCH 30
+
 
 void double_ver(float sig_in[], float *pcorr, float pitch, int pmin, int pmax, int lmin)
 
@@ -102,7 +104,6 @@ void double_ver(float sig_in[], float *pcorr, float pitch, int pmin, int pmax, i
     }
 
 }
-#undef SHORT_PITCH
 
 /*                                                                  */
 /*  find_pitch.c: Determine pitch value.                            */
@@ -175,8 +176,6 @@ float find_pitch(float sig_in[], float *pcorr, int lower, int upper,
     Copyright (c) 1995 by Texas Instruments, Inc.  All rights reserved.
 */
 
-#define MAXFRAC 2.0f
-#define MINFRAC -1.0f
 
 float frac_pch(float sig_in[], float *pcorr, float fpitch, int range, int pmin, int pmax, int lmin)
 
@@ -258,8 +257,6 @@ float frac_pch(float sig_in[], float *pcorr, float fpitch, int range, int pmin, 
     return(fpitch);
 
 }
-#undef MAXFRAC
-#undef MINFRAC
 
 /*
     Name: p_avg_update.c
@@ -323,16 +320,7 @@ void p_avg_init()
     Copyright (c) 1995 by Texas Instruments, Inc.  All rights reserved.
 */
 
-
-/* External variables */
-extern float lpf_num[], lpf_den[];
-
-/* Static data */
-static float lpres_del[LPF_ORD];
-static float sigbuf[LPF_ORD+PITCH_FR];
-
 float pitch_ana(float speech[], float resid[], float pitch_est, float pitch_avg, float *pcorr2)
-
 {
 
     float temp, temp2, pcorr, pitch;

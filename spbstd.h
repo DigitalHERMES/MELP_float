@@ -58,17 +58,6 @@ Group (phone 972 480 7442).
 #define SQR(x)          ((x)*(x))
 #endif
 
-/* Generic memory allocation/deallocation macros. */
-#define MEM_ALLOC(alloc_routine, v, n, type)   (v) = (type*) alloc_routine((n) * sizeof(type))
-#define MEM_2ALLOC(alloc_routine,v,n,k,type) \
-	do { \
-		v = (type**)alloc_routine((n) * sizeof(type*)); v[0]=(type*) alloc_routine((n)*(k)*sizeof(type));\
-		{int u__i; for(u__i=1; u__i < n; u__i++) v[u__i] = &v[u__i-1][k]; } \
-	} while(0)
-
-#define MEM_FREE(free_routine, v) free_routine(v)
-#define MEM_2FREE(free_routine, v) do { free_routine((v)[0]); free_routine(v); } while(0)
-
 #ifdef _WIN32
 #define MALLOC(n)   malloc((unsigned)(n))
 #define FREE(v)     free((void*)(v))

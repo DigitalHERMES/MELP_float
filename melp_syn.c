@@ -42,22 +42,13 @@ Group (phone 972 480 7442).
 #include "dsp_sub.h"
 #include "melp_sub.h"
 
-/* external memory references */
- 
-extern float bp_cof[NUM_BANDS][MIX_ORD+1];
-extern float disp_cof[DISP_ORD+1];
-extern float msvq_cb[];
-extern float fsvq_cb[];
-extern int fsvq_weighted;
 
 /* temporary memory */
-
 static float sigbuf[BEGIN+PITCHMAX];
 static float sig2[BEGIN+PITCHMAX];
 static float fs_real[PITCHMAX];
 
-/* permanent memory */
- 
+/* permanent memory */ 
 static int firstcall = 1; /* Just used for noise gain init */
 static float sigsave[PITCHMAX];
 static struct melp_param prev_par;

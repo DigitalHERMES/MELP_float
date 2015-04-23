@@ -39,15 +39,6 @@ Group (phone 972 480 7442).
 #include "melp_sub.h"
 #include "dsp_sub.h"
 
-/* external memory references */
- 
-extern float win_cof[LPC_FRAME];
-extern float lpf_num[LPF_ORD+1];
-extern float lpf_den[LPF_ORD+1];
-extern float msvq_cb[];
-extern float fsvq_cb[];
-extern int fsvq_weighted;
-
 /* memory definitions */
  
 static float sigbuf[SIG_LENGTH];
@@ -76,7 +67,7 @@ void melp_ana(float sp_in[],struct melp_param *par)
     int begin;
     float sub_pitch;
     float temp,pcorr,bpthresh;
-    float r[LPC_ORD+1],refc[LPC_ORD+1],lpc[LPC_ORD+1];
+    float r[LPC_ORD+1], lpc[LPC_ORD+1];
     float weights[LPC_ORD];
         
     /* Remove DC from input speech */
@@ -107,7 +98,7 @@ void melp_ana(float sp_in[],struct melp_param *par)
     window(&speech[(FRAME_END-(LPC_FRAME/2))],win_cof,sigbuf,LPC_FRAME);
     autocorr(sigbuf,r,LPC_ORD,LPC_FRAME);
     lpc[0] = 1.0;
-    lpc_schur(r,lpc,refc,LPC_ORD);
+    lpc_schur(r,lpc,LPC_ORD);
     lpc_bw_expand(lpc,lpc,BWFACT,LPC_ORD);
     
     /* Calculate LPC residual */
@@ -228,7 +219,7 @@ void melp_ana_init()
 
     int j;
 
-    bpvc_ana_init(FRAME,PITCHMIN,PITCHMAX,NUM_BANDS,2,MINLENGTH);
+    bpvc_ana_init();
     pitch_ana_init();
     p_avg_init();
 

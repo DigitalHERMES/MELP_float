@@ -28,6 +28,7 @@ Group (phone 972 480 7442).
 #include "melp_sub.h"
 #include "dsp_sub.h"
 #include "pit.h"
+#include "melp.h"
 
 /*
     Name: bpvc_ana.c
@@ -48,26 +49,23 @@ Group (phone 972 480 7442).
 #define BPF_ORD 6
 
 /* Constants */
-static int PITCHMAX;
-static int PITCHMIN;
-static int FRAME;
-static int NUM_BANDS;
-static int PIT_BEG;
-static int PIT_P_FR;
-static int PIT_FR_BEG;
-static int FIRST_CNTR;
-static int BPF_BEG;
-static int NUM_PITCHES;
-static int LMIN;
+#define PIT_BEG		BPF_ORD
+#define PIT_P_FR	((2*PITCHMAX)+1)
+#define PIT_FR_BEG	(-PITCHMAX)
+#define FIRST_CNTR	(PIT_BEG+PITCHMAX)
+#define BPF_BEG		(PIT_BEG+PIT_P_FR-FRAME)
+
 
 /* Static memory */
-static float **bpfdel;
-static float **envdel;
-static float *envdel2;
-static float *sigbuf;
+static float envdel2[NUM_BANDS];
+static float sigbuf[PIT_BEG+PIT_P_FR];
+static float sigbuf1[FRAME+DC_ORD];
 
-/* External variables */
-extern float bpf_num[], bpf_den[];
+static float *bpfdel[NUM_BANDS];
+static float bpfdel_data[NUM_BANDS*BPF_ORD];
+
+static float *envdel[NUM_BANDS];
+static float envdel_data[NUM_BANDS*ENV_ORD];
 
 void bpvc_ana(float speech[], float fpitch[], float bpvc[], float pitch[])
 {
@@ -84,11 +82,11 @@ void bpvc_ana(float speech[], float fpitch[], float bpvc[], float pitch[])
 	   BPF_ORD,PIT_P_FR);
     
     *pitch = frac_pch(&sigbuf[FIRST_CNTR],
-				&bpvc[0],fpitch[0],5,PITCHMIN,PITCHMAX,LMIN);
+				&bpvc[0],fpitch[0],5,PITCHMIN,PITCHMAX,MINLENGTH);
     
     for (j = 1; j < NUM_PITCHES; j++) {
 	temp = frac_pch(&sigbuf[FIRST_CNTR],
-			&pcorr,fpitch[j],5,PITCHMIN,PITCHMAX,LMIN);
+			&pcorr,fpitch[j],5,PITCHMIN,PITCHMAX,MINLENGTH);
 	
 	/* choose largest correlation value */
 	if (pcorr > bpvc[0]) {
@@ -112,7 +110,7 @@ void bpvc_ana(float speech[], float fpitch[], float bpvc[], float pitch[])
 	
 	/* Check correlations for each frame */
 	temp = frac_pch(&sigbuf[FIRST_CNTR],
-			&bpvc[j],*pitch,0,PITCHMIN,PITCHMAX,LMIN);
+			&bpvc[j],*pitch,0,PITCHMIN,PITCHMAX,MINLENGTH);
 
 	/* Calculate envelope of bandpass filtered input speech */
 	temp = envdel2[j];
@@ -123,7 +121,7 @@ void bpvc_ana(float speech[], float fpitch[], float bpvc[], float pitch[])
 	
 	/* Check correlations for each frame */
 	temp = frac_pch(&sigbuf[FIRST_CNTR],&pcorr,
-			*pitch,0,PITCHMIN,PITCHMAX,LMIN);
+			*pitch,0,PITCHMIN,PITCHMAX,MINLENGTH);
 					
 	/* reduce envelope correlation */
 	pcorr -= 0.1f;
@@ -133,33 +131,26 @@ void bpvc_ana(float speech[], float fpitch[], float bpvc[], float pitch[])
     }
 }
 
-void bpvc_ana_init(int fr, int pmin, int pmax, int nbands, int num_p, int lmin)
+
+void bpvc_ana_init()
 {
-
-    /* Initialize constants */
-    FRAME = fr;
-    PITCHMIN = pmin;
-    PITCHMAX = pmax;
-    NUM_BANDS = nbands;
-    NUM_PITCHES = num_p;
-    LMIN = lmin;
-    PIT_BEG = BPF_ORD;
-    PIT_P_FR = ((2*PITCHMAX)+1);
-    PIT_FR_BEG = (-PITCHMAX);
-    FIRST_CNTR = (PIT_BEG+PITCHMAX);
-    BPF_BEG = (PIT_BEG+PIT_P_FR-FRAME);
-
+	int i;
     /* Allocate memory */
-    MEM_2ALLOC(malloc,bpfdel,NUM_BANDS,BPF_ORD,float);
-    v_zap(&bpfdel[0][0],NUM_BANDS*BPF_ORD);
+    //  MEM_2ALLOC(malloc,bpfdel,NUM_BANDS,BPF_ORD,float);
+	for(i = 0; i < NUM_BANDS; i++)
+	{
+		bpfdel[i] = &bpfdel_data[BPF_ORD * i];
+		envdel[i] = &envdel_data[ENV_ORD * i];
+	}
+    v_zap(&(bpfdel[0][0]),NUM_BANDS*BPF_ORD);
 
-    MEM_2ALLOC(malloc,envdel,NUM_BANDS,ENV_ORD,float);
-    v_zap(&envdel[0][0],NUM_BANDS*ENV_ORD);
-    MEM_ALLOC(malloc,envdel2,NUM_BANDS,float);
+    //  MEM_2ALLOC(malloc,envdel,NUM_BANDS,ENV_ORD,float);
+    v_zap(&(envdel[0][0]),NUM_BANDS*ENV_ORD);
+    //  MEM_ALLOC(malloc,envdel2,NUM_BANDS,float);
     v_zap(envdel2,NUM_BANDS);
 
     /* Allocate scratch buffer */
-    MEM_ALLOC(malloc,sigbuf,PIT_BEG+PIT_P_FR,float);
+    //  MEM_ALLOC(malloc,sigbuf,PIT_BEG+PIT_P_FR,float);
 }
 
 /*
@@ -199,19 +190,18 @@ static float dc_den[DC_ORD+1] = {
 
 void dc_rmv(float sigin[], float sigout[], float dcdel[], int frame)
 {
-    float *sigbuf;
 
     /* Allocate scratch buffer */
-    MEM_ALLOC(malloc,sigbuf,frame+DC_ORD,float);
+    // MEM_ALLOC(malloc,sigbuf,frame+DC_ORD,float);
 
     /* Remove DC from input speech */
-    v_equ(sigbuf,dcdel,DC_ORD);
-    polflt(sigin,dc_den,&sigbuf[DC_ORD],DC_ORD,frame);
-    v_equ(dcdel,&sigbuf[frame],DC_ORD);
-    zerflt(&sigbuf[DC_ORD],dc_num,sigout,DC_ORD,frame);
+    v_equ(sigbuf1,dcdel,DC_ORD);
+    polflt(sigin,dc_den,&sigbuf1[DC_ORD],DC_ORD,frame);
+    v_equ(dcdel,&sigbuf1[frame],DC_ORD);
+    zerflt(&sigbuf1[DC_ORD],dc_num,sigout,DC_ORD,frame);
 
     /* Free scratch buffer */
-    MEM_FREE(free,sigbuf);
+    // MEM_FREE(free,sigbuf);
 
 }
 
@@ -253,7 +243,6 @@ float gain_ana(float sigin[], float pitch, int minlength, int maxlength)
       gain = MINGAIN;
 
     return(gain);
-
 }
 
 /*
@@ -383,7 +372,7 @@ void noise_sup(float *gain,float noise_gain,float max_noise,float max_atten,floa
 /* Compile constants */
 #define INVALID_BPVC 0001
 
-int q_bpvc(float *bpvc,int *bpvc_index,float bpthresh,int NUM_BANDS)
+int q_bpvc(float *bpvc,int *bpvc_index,float bpthresh,int num_bands)
 
 {
     int j, uv_flag;
@@ -397,7 +386,7 @@ int q_bpvc(float *bpvc,int *bpvc_index,float bpthresh,int NUM_BANDS)
 	*bpvc_index = 0;
 	bpvc[0] = 1.0;
 	
-	for (j = 1; j < NUM_BANDS; j++) {
+	for (j = 1; j < num_bands; j++) {
 	    *bpvc_index <<= 1; /* left shift */
 	    if (bpvc[j] > bpthresh) {
 		bpvc[j] = 1.0;
@@ -411,7 +400,7 @@ int q_bpvc(float *bpvc,int *bpvc_index,float bpthresh,int NUM_BANDS)
 	
 	/* Don't use invalid code (only top band voiced) */
 	if (*bpvc_index == INVALID_BPVC) {
-	    bpvc[(NUM_BANDS-1)] = 0.0;
+	    bpvc[(num_bands-1)] = 0.0;
 	    *bpvc_index = 0;
 	}
     }
@@ -420,14 +409,14 @@ int q_bpvc(float *bpvc,int *bpvc_index,float bpthresh,int NUM_BANDS)
 	
 	/* Unvoiced: force all bands unvoiced */
 	*bpvc_index = 0;
-	for (j = 0; j < NUM_BANDS; j++)
+	for (j = 0; j < num_bands; j++)
 	    bpvc[j] = 0.0;
     }
 
     return(uv_flag);
 }
 
-void q_bpvc_dec(float *bpvc,int *bpvc_index,int uv_flag,int NUM_BANDS)
+void q_bpvc_dec(float *bpvc,int *bpvc_index,int uv_flag,int num_bands)
 
 {
     int j;
@@ -452,7 +441,7 @@ void q_bpvc_dec(float *bpvc,int *bpvc_index,int uv_flag,int NUM_BANDS)
     }
 
     /* Decode remaining bands */
-    for (j = NUM_BANDS-1; j > 0; j--) {
+    for (j = num_bands-1; j > 0; j--) {
 	if ((*bpvc_index & 1) == 1)
 	    bpvc[j] = 1.0;
 	else
@@ -477,20 +466,20 @@ void q_bpvc_dec(float *bpvc,int *bpvc_index,int uv_flag,int NUM_BANDS)
 /* Compile constants */
 #define GAIN_INT_DB 5.0f
 
-void q_gain(float *gain,int *gain_index,float GN_QLO,float GN_QUP,int GN_QLEV)
+void q_gain(float *gain,int *gain_index,float gn_qlo,float gn_qup,int gn_qlev)
 
 {
     static float prev_gain = 0.0f;
     float temp,temp2;
 
     /* Quantize second gain term with uniform quantizer */
-    quant_u(&gain[1],&gain_index[1],GN_QLO,GN_QUP,GN_QLEV);
+    quant_u(&gain[1],&gain_index[1],gn_qlo,gn_qup,gn_qlev);
     
     /* Check for intermediate gain interpolation */
-    if (gain[0] < GN_QLO)
-      gain[0] = GN_QLO;
-    if (gain[0] > GN_QUP)
-      gain[0] = GN_QUP;
+    if (gain[0] < gn_qlo)
+      gain[0] = gn_qlo;
+    if (gain[0] > gn_qup)
+      gain[0] = gn_qup;
     if (fabs(gain[1] - prev_gain) < GAIN_INT_DB && 
 	fabs(gain[0] - 0.5f*(gain[1]+prev_gain)) < 3.0f) {
 
@@ -511,10 +500,10 @@ void q_gain(float *gain,int *gain_index,float GN_QLO,float GN_QUP,int GN_QLEV)
 	}
 	temp -= 6.0f;
 	temp2 += 6.0f;
-	if (temp < GN_QLO)
-	  temp = GN_QLO;
-	if (temp2 > GN_QUP)
-	  temp2 = GN_QUP;
+	if (temp < gn_qlo)
+	  temp = gn_qlo;
+	if (temp2 > gn_qup)
+	  temp2 = gn_qup;
 	quant_u(&gain[0],&gain_index[0],temp,temp2,7);
 
 	/* Skip all-zero code */
@@ -526,7 +515,7 @@ void q_gain(float *gain,int *gain_index,float GN_QLO,float GN_QUP,int GN_QLEV)
     
 }
 
-void q_gain_dec(float *gain,int *gain_index,float GN_QLO,float GN_QUP,int GN_QLEV)
+void q_gain_dec(float *gain,int *gain_index,float gn_qlo,float gn_qup,int gn_qlev)
 {
 
     static float prev_gain = 0.0f;
@@ -534,7 +523,7 @@ void q_gain_dec(float *gain,int *gain_index,float GN_QLO,float GN_QUP,int GN_QLE
     float temp,temp2;
 
     /* Decode second gain term */
-    quant_u_dec(gain_index[1],&gain[1],GN_QLO,GN_QUP,GN_QLEV);
+    quant_u_dec(gain_index[1],&gain[1],gn_qlo,gn_qup,gn_qlev);
     
     if (gain_index[0] == 0) {
 
@@ -569,10 +558,10 @@ void q_gain_dec(float *gain,int *gain_index,float GN_QLO,float GN_QUP,int GN_QLE
 	}
 	temp -= 6.0f;
 	temp2 += 6.0f;
-	if (temp < GN_QLO)
-	  temp = GN_QLO;
-	if (temp2 > GN_QUP)
-	  temp2 = GN_QUP;
+	if (temp < gn_qlo)
+	  temp = gn_qlo;
+	if (temp2 > gn_qup)
+	  temp2 = gn_qup;
 	quant_u_dec(gain_index[0],&gain[0],temp,temp2,7);
     }
 
@@ -599,7 +588,7 @@ void q_gain_dec(float *gain,int *gain_index,float GN_QLO,float GN_QUP,int GN_QLE
     Copyright (c) 1995 by Texas Instruments, Inc.  All rights reserved.
 */
 
-void scale_adj(float *speech, float gain, float *prev_scale, int length, int SCALEOVER)
+void scale_adj(float *speech, float gain, float *prev_scale, int length, int scale_over)
 
 {
     int i;
@@ -609,13 +598,13 @@ void scale_adj(float *speech, float gain, float *prev_scale, int length, int SCA
     scale = gain / (sqrtf(v_magsq(&speech[0],length) / length) + .01f);
 
     /* interpolate scale factors for first SCALEOVER points */
-    for (i = 1; i < SCALEOVER; i++) {
-	speech[i-1] *= ((scale*i + *prev_scale*(SCALEOVER-i))
-			      * (1.0f/SCALEOVER) );
+    for (i = 1; i < scale_over; i++) {
+	speech[i-1] *= ((scale*i + *prev_scale*(scale_over-i))
+			      * (1.0f/scale_over) );
     }
     
     /* Scale rest of signal */
-    v_scale(&speech[SCALEOVER-1],scale,length-SCALEOVER+1);
+    v_scale(&speech[scale_over-1],scale,length-scale_over+1);
 
     /* Update previous scale factor for next call */
     *prev_scale = scale;

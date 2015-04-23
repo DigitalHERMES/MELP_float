@@ -37,6 +37,7 @@ Group (phone 972 480 7442).
 /*	FFT of input signal divided into pitch dependent bins.	*/
 /*								*/
 #define	FFTLENGTH	512
+#define DFTMAX		160
 
 /* Memory definition		*/
 static float find_hbuf[2*FFTLENGTH];
@@ -190,7 +191,6 @@ float register  maxval, *p_in;
 /*	using symmetry between lower and upper DFT		*/
 /*	coefficients.						*/
 /*								*/
-#define DFTMAX 160
 
 /* Memory definition	*/
 static float	idftc[DFTMAX];
@@ -201,13 +201,6 @@ void	idft_real(float real[], float signal[], int length)
     int	i, j, k, k_inc, length2;
     float	w;
 
-#if (PRINT)
-    if (length > DFTMAX) {
-	printf("****ERROR: IDFT size too large **** \n");
-	exit(1);
-    }
-#endif
-    
     length2 = (length/2)+1;
     w = 2 * M_PI / length;
     for (i = 0; i < length; i++ ) {

@@ -45,7 +45,7 @@ int lpc_lsp2pred(float *w,float *a,int p);
 int lpc_refl2pred(float *k,float *a,int p);
 
 /* schur recursion */
-float lpc_schr(float *r, float *a, float *k_tmp, int p);
+float lpc_schr(float *r, float *a, int p);
 
 /* evaluation of |A(e^jw)|^2 at a single point (using Horner's method) */
 float lpc_aejw(float *a,float w,int p);

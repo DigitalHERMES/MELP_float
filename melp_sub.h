@@ -23,7 +23,7 @@ Group (phone 972 480 7442).
 
 void dc_rmv(float sigin[], float sigout[], float dcdel[], int frame);
 void bpvc_ana(float speech[], float fpitch[], float bpvc[], float sub_pitch[]);
-void bpvc_ana_init(int fr, int pmin, int pmax, int nbands, int num_p, int lmin);
+void bpvc_ana_init();
 float gain_ana(float sigin[], float pitch, int minlength, int maxlength);
 void q_gain(float *gain,int *gain_index,float qlow,float qup,int qlev);
 void q_gain_dec(float *gain,int *gain_index,float qlow,float qup,int qlev);

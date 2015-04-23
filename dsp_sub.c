@@ -91,8 +91,7 @@ void interp_array(float prev[],float curr[],float out[],float ifact,int size)
 
     ifact2 = 1.0F - ifact;
     for (i = 0; i < size; i++)
-      out[i] = ifact*curr[i] + ifact2*prev[i];
-      
+      out[i] = ifact*curr[i] + ifact2*prev[i];      
 }
 
 /*								*/
@@ -119,7 +118,6 @@ float median(float input[], int npts)
 
 	/* for each data point */
 	for (j = 0; j < i; j++) {
-
 	    /* find location in current sorted list */
 	    if (sorted[i] < sorted[j])
 	      break;

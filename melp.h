@@ -101,6 +101,23 @@ Group (phone 972 480 7442).
 #define SIG_LENGTH (LPF_ORD+PITCH_FR)
 
 #define NUM_GOOD 3
+#define NUM_PITCHES 2
+
+#define NUM_MULT 8
+#define SHORT_PITCH 30
+#define MAXFRAC 2.0f
+#define MINFRAC -1.0f
+
+/* External variables */
+extern float lpf_num[], lpf_den[];
+extern float bpf_num[], bpf_den[];
+extern float win_cof[];
+extern float msvq_cb[];
+extern float fsvq_cb[];
+extern int fsvq_weighted;
+extern float bp_cof[NUM_BANDS][MIX_ORD+1];
+extern float disp_cof[DISP_ORD+1];
+
 
 /* compiler constants */
  

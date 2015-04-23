@@ -24,7 +24,7 @@ Group (phone 972 480 7442).
 #include <math.h>
 #include "spbstd.h"
 #include "lpc.h"
-
+#include "melp.h"
 /* 
     Name: lpc_aejw- Compute square of A(z) evaluated at exp(jw)
     Description:
@@ -248,20 +248,28 @@ int lpc_clmp(float *w, float delta, int p)
 
 */
 
-float lpc_schr(float *r, float *a, float *k_tmp, int p)
+static float y[LPC_ORD + 2];
+static float y2[LPC_ORD + 2];
+static float k[LPC_ORD + 2];
+static float b[LPC_ORD + 2];
+static float b1[LPC_ORD + 2];
+static float a1[LPC_ORD + 2];
+
+static float c0[LPC_ORD/2 + 1];
+static float c1[LPC_ORD/2 + 1];
+static float *c[2];
+
+static float f0[LPC_ORD/2 + 1];
+static float f1[LPC_ORD/2 + 1];
+static float *f[2];
+
+float lpc_schr(float *r, float *a, int p)
 {
     int i,j;
-    float temp,alphap,*y1,*y2,*k;
+    float temp,alphap;
 
-    MEM_ALLOC(MALLOC,y1,p+2,float);
-    MEM_ALLOC(MALLOC,y2,p+2,float);
-
-    if (k_tmp == NULL)
-    {
-        MEM_ALLOC(MALLOC,k,p+1,float);
-    }
-    else
-        k = k_tmp;
+    // MEM_ALLOC(MALLOC,y1,p+2,float);
+    // MEM_ALLOC(MALLOC,y2,p+2,float);
 
     k[1] = -r[1]/r[0];
     alphap = r[0]*(1-SQR(k[1]));
@@ -271,18 +279,18 @@ float lpc_schr(float *r, float *a, float *k_tmp, int p)
 
     for(i=2; i <= p; i++)
     {
-        y1[1] = temp = r[i];
+        y[1] = temp = r[i];
 
         for(j=1; j < i; j++)
         {
-            y1[j+1] = y2[j] + k[j]*temp;
+            y[j+1] = y2[j] + k[j]*temp;
             temp += k[j]*y2[j];
-            y2[j] = y1[j];
+            y2[j] = y[j];
         }
 
         k[i] = -temp/y2[i];
         y2[i+1] = y2[i]+k[i]*temp;
-        y2[i] = y1[i];
+        y2[i] = y[i];
 
         alphap *= 1-SQR(k[i]);
     }
@@ -291,13 +299,9 @@ float lpc_schr(float *r, float *a, float *k_tmp, int p)
     {
         (void)lpc_refl2pred(k,a,p);
     }
-    if (k_tmp == NULL)
-    {
-        MEM_FREE(FREE,k);
-    }
 
-    MEM_FREE(FREE,y2);
-    MEM_FREE(FREE,y1);
+    // MEM_FREE(FREE,y2);
+    // MEM_FREE(FREE,y1);
     return(alphap);
 }
 
@@ -323,37 +327,33 @@ static int   lsp_roots(float *w,float **c,int p2);
 
 */
 
+
+
 int lpc_pred2lsp(float *a,float *w,int p)
 {
     int i,p2;
-    float **c;
 
     p2 = p/2;
+	c[0] = c0;
+	c[1] = c1;
 
-    MEM_2ALLOC(MALLOC,c,2,p2+1,float);
-    c[0][p2] = c[1][p2] = 1.0;
+    // MEM_2ALLOC(MALLOC,c,2,p2+1,float);
+    c0[p2] = c1[p2] = 1.0;
 
     for(i=1; i <= p2; i++)
     {
-        c[0][p2-i] = (a[i] + a[p+1-i] - c[0][p2+1-i]);
-        c[1][p2-i] = c[1][p2+1-i] + a[i] - a[p+1-i];
+        c0[p2-i] = (a[i] + a[p+1-i] - c0[p2+1-i]);
+        c1[p2-i] = c1[p2+1-i] + a[i] - a[p+1-i];
     }
-    c[0][0] /= 2.0f;
-    c[1][0] /= 2.0f;
+    c0[0] /= 2.0f;
+    c1[0] /= 2.0f;
 
     i = lsp_roots(w,c,p2);
-
-    if (i)
-    {
-        for(i=1; i <= p; i++)
-            (void)fprintf(stderr,"%11.7f ",a[i]);
-        (void)fprintf(stderr,"\n");
-    }
 
     /* ensure minimum separation and sort */
     (void)lpc_clamp(w,lsp_delta,p);
 
-    MEM_2FREE(FREE,c);
+    // MEM_2FREE(FREE,c);
     return(i);
 } /* LPC_PRED2LSP */
 
@@ -369,11 +369,11 @@ int lpc_pred2lsp(float *a,float *w,int p)
 
 int lpc_pred2refl(float *a,float *k,int p)
 {
-    float *b,*b1,e;
+    float e;
     int   i,j;
 
-    MEM_ALLOC(MALLOC,b,p+1,float);
-    MEM_ALLOC(MALLOC,b1,p+1,float);
+    // MEM_ALLOC(MALLOC,b,p+1,float);
+    // MEM_ALLOC(MALLOC,b1,p+1,float);
 
     /* equate temporary variables (b = a) */
     for(i=1; i <= p; i++)
@@ -390,8 +390,8 @@ int lpc_pred2refl(float *a,float *k,int p)
             b[j] = (b1[j] - k[i]*b1[i-j])/e;
     }
 
-    MEM_FREE(FREE,b1);
-    MEM_FREE(FREE,b);
+    // MEM_FREE(FREE,b1);
+    // MEM_FREE(FREE,b);
     return(0);
 }
 /* LPC_LSP2PRED
@@ -408,13 +408,15 @@ int lpc_pred2refl(float *a,float *k,int p)
 int lpc_lsp2pred(float *w,float *a,int p)
 {
     int i,j,k,p2;
-    float **f,c[2];
+    float c[2];
 
     /* ensure minimum separation and sort */
     (void)lpc_clamp(w,lsp_delta,p);
 
     p2 = p/2;
-    MEM_2ALLOC(MALLOC,f,2,p2+1,float);
+    // MEM_2ALLOC(MALLOC,f,2,p2+1,float);
+	f[0] = f0;
+	f[1] = f1;
     f[0][0] = f[1][0] = 1.0;
     f[0][1] = (float)-2.0f*cosf(w[1]*M_PI);
     f[1][1] = (float)-2.0f*cosf(w[2]*M_PI);
@@ -428,7 +430,7 @@ int lpc_lsp2pred(float *w,float *a,int p)
         f[0][i] = f[0][i-2];
         f[1][i] = f[1][i-2];
 
-        for(j=i; j >= 2; j--)
+        for(j = i; j >= 2; j--)
         {
             f[0][j] += c[0]*f[0][j-1]+f[0][j-2];
             f[1][j] += c[1]*f[1][j-1]+f[1][j-2];
@@ -437,7 +439,7 @@ int lpc_lsp2pred(float *w,float *a,int p)
         f[1][1] += c[1]*f[1][0];
     }
 
-    for(i=p2; i > 0; i--)
+    for(i = p2; i > 0; i--)
     {
         f[0][i] += f[0][i-1];
         f[1][i] -= f[1][i-1];
@@ -446,7 +448,7 @@ int lpc_lsp2pred(float *w,float *a,int p)
         a[p+1-i] = 0.50f*(f[0][i]-f[1][i]);
     }
 
-    MEM_2FREE(FREE,f);
+    // MEM_2FREE(FREE,f);
     return(0);
 }
 
@@ -465,9 +467,7 @@ int lpc_refl2pred(float *k,float *a,int p)
 {
     int   i,j;
 
-    float *a1;
-
-    MEM_ALLOC(MALLOC,a1,p+1,float);
+    // MEM_ALLOC(MALLOC,a1,p+1,float);
 
     for(i=1; i <= p; i++)
     {
@@ -479,7 +479,7 @@ int lpc_refl2pred(float *k,float *a,int p)
             a[j] = a1[j] + k[i]*a1[i-j];
     }
 
-    MEM_FREE(FREE,a1);
+    // MEM_FREE(FREE,a1);
 
     return(0);
 
@@ -514,10 +514,10 @@ static int lsp_roots(float *w,float **c,int p2)
     int i,k;
     float x,x0,x1,y,*ptr,g0,g1;
 
-    w[0] = 0.0;
+    w[0] = 0.0f;
 
     ptr = c[0];
-    x = 1.0;
+    x = 1.0f;
     g0 = lsp_g(x,ptr,p2);
 
     for(k=1,x = 1.0f-DELTA; x > -DELTA-1.0f; x -= DELTA)
