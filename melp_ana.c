@@ -58,7 +58,8 @@ static int fs_vq_par_indices[1];
 static int fs_vq_par_num_bits[1];
 
 static float w_fs[NUM_HARM];
-
+static float r[LPC_ORD+1], lpc[LPC_ORD+1];
+static float weights[LPC_ORD];
 	
 void melp_ana(float sp_in[],struct melp_param *par)
 {
@@ -67,8 +68,7 @@ void melp_ana(float sp_in[],struct melp_param *par)
     int begin;
     float sub_pitch;
     float temp,pcorr,bpthresh;
-    float r[LPC_ORD+1], lpc[LPC_ORD+1];
-    float weights[LPC_ORD];
+
         
     /* Remove DC from input speech */
     dc_rmv(sp_in,&speech[IN_BEG],dcdel,FRAME);
@@ -290,5 +290,4 @@ void melp_ana_init()
 	    window(&fs_vq_par.cb[j*NUM_HARM],w_fs,&fs_vq_par.cb[j*NUM_HARM],
 		   NUM_HARM);
       }
-
 }

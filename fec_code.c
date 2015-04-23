@@ -106,10 +106,11 @@ void fec_code(struct melp_param *par)
 
 }
 
+
+extern int pitch_dec[1<<PIT_BITS]; /* Pitch index decoding table */
+
 int fec_decode(struct melp_param *par, int erase)
 {
-
-    extern int pitch_dec[1<<PIT_BITS]; /* Pitch index decoding table */
     int berr_pos;
 
     /* Decode pitch index */

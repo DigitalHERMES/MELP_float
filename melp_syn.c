@@ -75,6 +75,15 @@ static float w_fs_inv[NUM_HARM];
 static float prev_pcof[MIX_ORD+1],prev_ncof[MIX_ORD+1];
 static float prev_tilt;
 
+// Temporary static vars
+static float tilt_cof[TILT_ORD+1];
+static float lsf[LPC_ORD+1];
+static float lpc[LPC_ORD+1];
+static float ase_num[LPC_ORD+1],ase_den[LPC_ORD+1];
+static float curr_pcof[MIX_ORD+1],curr_ncof[MIX_ORD+1];
+static float pulse_cof[MIX_ORD+1],noise_cof[MIX_ORD+1];
+static float w_fs[NUM_HARM];
+
 void melp_syn(struct melp_param *par, float sp_out[])
 {
 
@@ -83,13 +92,8 @@ void melp_syn(struct melp_param *par, float sp_out[])
     int length;
     float intfact, ifact, ifact_gain;
     float gain,pulse_gain,pitch,jitter;
-    float curr_tilt,tilt_cof[TILT_ORD+1];
+    float curr_tilt;
     float temp,sig_prob;
-    float lsf[LPC_ORD+1];
-    float lpc[LPC_ORD+1];
-    float ase_num[LPC_ORD+1],ase_den[LPC_ORD+1];
-    float curr_pcof[MIX_ORD+1],curr_ncof[MIX_ORD+1];
-    float pulse_cof[MIX_ORD+1],noise_cof[MIX_ORD+1];
     
     /* Copy previous period of processed speech to output array */
     if (syn_begin > 0) {
@@ -339,7 +343,6 @@ void melp_syn(struct melp_param *par, float sp_out[])
 void melp_syn_init()
 {
     int i;
-    float w_fs[NUM_HARM];
 	
     v_zap(prev_par.gain,NUM_GAINFR);
     prev_par.pitch = UV_PITCH;
@@ -361,7 +364,7 @@ void melp_syn_init()
     v_zap(disp_del,DISP_ORD);
     v_zap(sig2,BEGIN+PITCHMAX);
     v_zap(sigbuf,BEGIN+PITCHMAX);
-    v_zap(sigsave,2*PITCHMAX);
+    v_zap(sigsave,PITCHMAX);
     v_zap(prev_pcof,MIX_ORD+1);
     v_zap(prev_ncof,MIX_ORD+1);
     prev_ncof[MIX_ORD/2] = 1.0;
