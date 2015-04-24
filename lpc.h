@@ -20,19 +20,14 @@ Group (phone 972 480 7442).
 */
 
 
-/* better names */
-#define lpc_bw_expand          lpc_bwex
-#define lpc_synthesis          lpc_syn
-#define lpc_schur              lpc_schr
-#define lpc_clamp              lpc_clmp
-
 /* bandwidth expansion function */
-int lpc_bwex(float *a, float *aw, float gamma, int p);
+int lpc_bw_expand(float *a, float *aw, float gamma, int p);
+
 /* lpc synthesis filter */
-int lpc_syn(float *x,float *y,float *a,int p,int n);
+int lpc_synthesis(float *x,float *y,float *a,int p,int n);
 
 /* sort LSPs and ensure minimum separation */
-int lpc_clmp(float *w, float delta, int p);
+int lpc_clamp(float *w, float delta, int p);
 
 /* lpc conversion routines */
 /* convert predictor parameters to LSPs */
@@ -45,7 +40,7 @@ int lpc_lsp2pred(float *w,float *a,int p);
 int lpc_refl2pred(float *k,float *a,int p);
 
 /* schur recursion */
-float lpc_schr(float *r, float *a, int p);
+float lpc_schur(float *r, float *a, int p);
 
 /* evaluation of |A(e^jw)|^2 at a single point (using Horner's method) */
 float lpc_aejw(float *a,float w,int p);

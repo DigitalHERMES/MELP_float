@@ -58,12 +58,4 @@ Group (phone 972 480 7442).
 #define SQR(x)          ((x)*(x))
 #endif
 
-#ifdef _WIN32
-#define MALLOC(n)   malloc((unsigned)(n))
-#define FREE(v)     free((void*)(v))
-#else
-#define MALLOC(n)   osAlloc((unsigned)(n))
-#define FREE(v)     osFree((void*)(v))
-#endif
-
 #endif /* #ifndef _spbstd_h */

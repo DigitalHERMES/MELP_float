@@ -24,9 +24,11 @@ Group (phone 972 480 7442).
 float double_chk(float sig_in[], float *pcorr, float pitch, float pdouble, int pmin, int pmax, int lmin);
 void double_ver(float sig_in[], float *pcorr, float pitch, int pmin, int pmax, int lmin);
 float find_pitch(float sig_in[],float *pcorr,int lower,int upper,int length);
-float frac_pch(float sig_in[], float *corr, float pitch, int range, int pmin, int pmax, int lmin);
-float pitch_ana(float speech[], float resid[], float pitch_est, float pitch_avg, float *pcorr2);
+float frac_pch(float sig_in[], float *pcorr, float pitch, int range, int pmin, int pmax, int lmin);
+float pitch_ana(float sig_in[], float resid[], float pitch_est, float pitch_avg, float *pcorr);
+
 void pitch_ana_init(void);
+
 float p_avg_update(float pitch, float pcorr, float pthresh);
 void p_avg_init(void);
 

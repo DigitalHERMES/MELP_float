@@ -85,7 +85,7 @@ float lpc_aejw(float *a,float w,int p)
 } /* LPC_AEJW */
 
 /*
-    Name: lpc_bwex- Move the zeros of A(z) toward the origin.
+    Name: lpc_bw_expand- Move the zeros of A(z) toward the origin.
     Aliases: lpc_bw_expand
     Description:
         Expand the zeros of the LPC filter by gamma, which
@@ -111,7 +111,7 @@ float lpc_aejw(float *a,float w,int p)
     Copyright (c) 1995 by Texas Instruments, Inc.  All rights reserved.
 */
 
-int lpc_bwex(float *a, float *aw, float gamma, int p)
+int lpc_bw_expand(float *a, float *aw, float gamma, int p)
 {
     int i;
     float gk;
@@ -122,7 +122,7 @@ int lpc_bwex(float *a, float *aw, float gamma, int p)
 }
 
 /*
-    Name: lpc_clmp- Sort and ensure minimum separation in LSPs.
+    Name: lpc_clamp- Sort and ensure minimum separation in LSPs.
     Aliases: lpc_clamp
     Description:
         Ensure that all LSPs are ordered and separated
@@ -151,7 +151,7 @@ int lpc_bwex(float *a, float *aw, float gamma, int p)
 
 #define MAX_LOOPS 10
 
-int lpc_clmp(float *w, float delta, int p)
+int lpc_clamp(float *w, float delta, int p)
 {
     int i,j,unsorted;
     float tmp,d,step1,step2;
@@ -209,7 +209,7 @@ int lpc_clmp(float *w, float delta, int p)
 }
 
 /*
-    Name: lpc_schr- Schur recursion (autocorrelations to refl coef)
+    Name: lpc_schur- Schur recursion (autocorrelations to refl coef)
     Aliases: lpc_schur
     Description:
         Compute reflection coefficients from autocorrelations
@@ -246,7 +246,7 @@ static float f0[LPC_ORD/2 + 1];
 static float f1[LPC_ORD/2 + 1];
 static float *f[2];
 
-float lpc_schr(float *r, float *a, int p)
+float lpc_schur(float *r, float *a, int p)
 {
     int i,j;
     float temp,alphap;
@@ -542,7 +542,7 @@ static int lsp_roots(float *w,float **c,int p2)
 } /* LSP_ROOTS */
 
 /*
-    Name: lpc_syn- LPC synthesis filter.
+    Name: lpc_synthesis- LPC synthesis filter.
     Aliases: lpc_synthesis
     Description:
         LPC all-pole synthesis filter
@@ -569,7 +569,7 @@ static int lsp_roots(float *w,float **c,int p2)
 
 */
 
-int lpc_syn(float *x,float *y,float *a,int p,int n)
+int lpc_synthesis(float *x,float *y,float *a,int p,int n)
 {
     int i,j;
 

@@ -258,7 +258,6 @@ float frac_pch(float sig_in[], float *pcorr, float fpitch, int range, int pmin, 
 static float good_pitch[NUM_GOOD];
 
 float p_avg_update(float pitch, float pcorr, float pthresh)
-
 {
     int i;
     float pitch_avg;
@@ -281,7 +280,6 @@ float p_avg_update(float pitch, float pcorr, float pthresh)
 }
 
 void p_avg_init()
-
 {
     /* Allocate and initialize good pitch array */
     fill(good_pitch,DEFAULT_PITCH_,NUM_GOOD);

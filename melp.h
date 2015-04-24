@@ -112,10 +112,9 @@ extern float bpf_num[], bpf_den[];
 extern float win_cof[];
 extern float msvq_cb[];
 extern float fsvq_cb[];
-extern int fsvq_weighted;
 extern float bp_cof[NUM_BANDS][MIX_ORD+1];
 extern float disp_cof[DISP_ORD+1];
-
+extern int fsvq_weighted;
 
 /* compiler constants */
  
@@ -144,7 +143,7 @@ extern float disp_cof[DISP_ORD+1];
 /* Structure definition */
 typedef struct msvq_param {         /* Multistage VQ parameters */
 	int num_stages;
-	int dimension;
+	int num_dimensions;
 	int num_best;
 	int bits[4];
 	int levels[4];

@@ -58,7 +58,6 @@ static float noise_gain = MIN_NOISE;
 static float pulse_del[MIX_ORD],noise_del[MIX_ORD];
 static float lpc_del[LPC_ORD],ase_del[LPC_ORD],tilt_del[TILT_ORD];
 static float disp_del[DISP_ORD];
-static float w_fs_inv[NUM_HARM];
 
 /* these can be saved or recomputed */
 static float prev_pcof[MIX_ORD+1], prev_ncof[MIX_ORD+1];
@@ -72,6 +71,7 @@ static float ase_num[LPC_ORD+1],ase_den[LPC_ORD+1];
 static float curr_pcof[MIX_ORD+1],curr_ncof[MIX_ORD+1];
 static float pulse_cof[MIX_ORD+1],noise_cof[MIX_ORD+1];
 static float w_fs[NUM_HARM];
+static float w_fs_inv[NUM_HARM];
 
 void melp_syn(struct melp_param *par, float sp_out[])
 {
@@ -380,12 +380,10 @@ void melp_syn_init(melp_param_t *par)
 	
     fill(prev_par.fs_mag,1.0,NUM_HARM);
 
-    /* 
-     * Initialize multi-stage vector quantization (read codebook) 
-     */
+    /* Initialize multi-stage vector quantization (read codebook)  */
 	par->msvq_par.num_best = MSVQ_M;
     par->msvq_par.num_stages = 4;
-    par->msvq_par.dimension = 10;
+    par->msvq_par.num_dimensions = 10;
 
     par->msvq_par.levels[0] = 128;
     par->msvq_par.levels[1] = 64;
@@ -399,43 +397,28 @@ void melp_syn_init(melp_param_t *par)
 	
     par->msvq_par.cb = msvq_cb;
 	
-    /* Scale codebook to 0 to 1 */
-    if (fsvq_weighted == 0)
-      v_scale(par->msvq_par.cb,(2.0f/FSAMP),3200);
-
-    /* 
-     * Initialize Fourier magnitude vector quantization (read codebook) 
-     */
+    /* Initialize Fourier magnitude vector quantization (read codebook)  */
 	 
     par->fsvq_par.num_best = 1;
     par->fsvq_par.num_stages = 1;
-    par->fsvq_par.dimension = NUM_HARM;
+    par->fsvq_par.num_dimensions = NUM_HARM;
 
-    /* 
-     * Allocate memory for number of levels per stage and indices
-     * and for number of bits per stage 
-     */
-	
     par->fsvq_par.levels[0] = FS_LEVELS;
     par->fsvq_par.bits[0] = FS_BITS;
     par->fsvq_par.cb = fsvq_cb;
 	
-    /* 
-     * Initialize fixed MSE weighting and inverse of weighting 
-     */
-	
+    /* Initialize fixed MSE weighting and inverse of weighting  */
     vq_fsw(w_fs, NUM_HARM, 60.0f);
-    for (i = 0; i < NUM_HARM; i++)
-      w_fs_inv[i] = 1.0f/w_fs[i];
+    for (i = 0; i < NUM_HARM; i++)  w_fs_inv[i] = 1.0f/w_fs[i];
 
-    /* 
-     * Pre-weight codebook (assume single stage only) 
-     */	
+    /* Pre-weight codebook (assume single stage only)  */	
     if (fsvq_weighted == 0)
 	{
 		fsvq_weighted = 1;
-		for (i = 0; i < par->fsvq_par.levels[0]; i++)
-		window(&par->fsvq_par.cb[i*NUM_HARM],w_fs,&par->fsvq_par.cb[i*NUM_HARM], NUM_HARM);
+	    /* Scale codebook to 0 to 1 */
+	    v_scale(msvq_cb,(2.0f/FSAMP),3200);
+		for (i = 0; i < FS_LEVELS; i++)
+			window(&fsvq_cb[i*NUM_HARM],w_fs,&fsvq_cb[i*NUM_HARM], NUM_HARM);
 	}	
 }
 
