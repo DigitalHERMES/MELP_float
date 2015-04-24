@@ -34,7 +34,7 @@ Group (phone 972 480 7442).
 #include <math.h>
 
 #ifndef _WIN32
-#include <cmsis_os.h>
+// #include <cmsis_os.h>
 #endif
 /* OSTYPE-dependent definitions/macros. */
 

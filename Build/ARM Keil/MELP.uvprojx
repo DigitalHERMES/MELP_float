@@ -14,7 +14,7 @@
         <TargetCommonOption>
           <Device>STM32F407IETx</Device>
           <Vendor>STMicroelectronics</Vendor>
-          <PackID>Keil.STM32F4xx_DFP.2.2.0</PackID>
+          <PackID>Keil.STM32F4xx_DFP.2.4.0</PackID>
           <PackURL>http://www.keil.com/pack</PackURL>
           <Cpu>IROM(0x08000000,0x80000) IRAM(0x20000000,0x20000) IRAM2(0x10000000,0x10000) CPUTYPE("Cortex-M4") FPU2 CLOCK(12000000) ELITTLE</Cpu>
           <FlashUtilSpec></FlashUtilSpec>
@@ -444,11 +444,6 @@
               <FilePath>..\..\mat_lib.c</FilePath>
             </File>
             <File>
-              <FileName>melp.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\..\melp.c</FilePath>
-            </File>
-            <File>
               <FileName>melp_ana.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\..\melp_ana.c</FilePath>
@@ -502,28 +497,9 @@
         </Group>
         <Group>
           <GroupName>::CMSIS</GroupName>
-          <Files>
-            <File>
-              <FileName>arm_cortexM4lf_math.lib</FileName>
-              <FileType>4</FileType>
-              <FilePath>C:\Keil5.0\ARM\PACK\ARM\CMSIS\4.2.0\CMSIS\Lib\ARM\arm_cortexM4lf_math.lib</FilePath>
-            </File>
-          </Files>
         </Group>
         <Group>
           <GroupName>::Device</GroupName>
-          <Files>
-            <File>
-              <FileName>startup_stm32f407xx.s</FileName>
-              <FileType>2</FileType>
-              <FilePath>RTE\Device\STM32F407IETx\startup_stm32f407xx.s</FilePath>
-            </File>
-            <File>
-              <FileName>system_stm32f4xx.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>RTE\Device\STM32F407IETx\system_stm32f4xx.c</FilePath>
-            </File>
-          </Files>
         </Group>
       </Groups>
     </Target>

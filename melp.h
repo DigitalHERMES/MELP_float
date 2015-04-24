@@ -154,7 +154,7 @@ struct melp_param {         /* MELP parameters */
     int jit_index;
     int bpvc_index;
     int gain_index[NUM_GAINFR];
-    unsigned int *chptr;
+    // unsigned int *chptr;
     int chbit;
     int uv_flag;
     float fs_mag[NUM_HARM];
@@ -171,7 +171,7 @@ __declspec(dllexport) void __cdecl melp_ana(float sp_in[],struct melp_param *par
 __declspec(dllexport) void __cdecl melp_syn(struct melp_param *par, float sp_out[]);
 __declspec(dllexport) void __cdecl melp_ana_init();
 __declspec(dllexport) void __cdecl melp_syn_init();
-__declspec(dllexport) int  __cdecl melp_chn_read(struct melp_param *par, struct melp_param *prev_par);
+__declspec(dllexport) int  __cdecl melp_chn_read(struct melp_param *par);
 __declspec(dllexport) void __cdecl melp_chn_write(struct melp_param *par);
 
 __declspec(dllexport) void __cdecl fec_code(struct melp_param *par);
@@ -181,7 +181,7 @@ void  melp_ana(float sp_in[],struct melp_param *par);
 void  melp_syn(struct melp_param *par, float sp_out[]);
 void  melp_ana_init(void);
 void  melp_syn_init(void);
-int   melp_chn_read(struct melp_param *par, struct melp_param *prev_par);
+int   melp_chn_read(struct melp_param *par);
 void  melp_chn_write(struct melp_param *par);
 
 void  fec_code(struct melp_param *par);

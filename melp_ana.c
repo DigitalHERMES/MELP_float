@@ -63,7 +63,6 @@ static float weights[LPC_ORD];
 	
 void melp_ana(float sp_in[],struct melp_param *par)
 {
-
     int i;
     int begin;
     float sub_pitch;
@@ -90,9 +89,9 @@ void melp_ana(float sp_in[],struct melp_param *par)
     
     /* Force jitter if lowest band voicing strength is weak */    
     if (par->bpvc[0] < VJIT)
-	par->jitter = MAX_JITTER;
+		par->jitter = MAX_JITTER;
     else
-	par->jitter = 0.0;
+		par->jitter = 0.0;
     
     /* Calculate LPC for end of frame */
     window(&speech[(FRAME_END-(LPC_FRAME/2))],win_cof,sigbuf,LPC_FRAME);
@@ -110,13 +109,13 @@ void melp_ana(float sp_in[],struct melp_param *par)
     
     /* Peakiness: force lowest band to be voiced  */
     if (temp > PEAK_THRESH) {
-	par->bpvc[0] = 1.0;
+		par->bpvc[0] = 1.0;
     }
     
     /* Extreme peakiness: force second and third bands to be voiced */
     if (temp > PEAK_THR2) {
-	par->bpvc[1] = 1.0;
-	par->bpvc[2] = 1.0;
+		par->bpvc[1] = 1.0;
+		par->bpvc[2] = 1.0;
     }
 		
     /* Calculate overall frame pitch using lowpass filtered residual */
@@ -126,18 +125,16 @@ void melp_ana(float sp_in[],struct melp_param *par)
     
     /* Calculate gain of input speech for each gain subframe */
     for (i = 0; i < NUM_GAINFR; i++) {
-	if (par->bpvc[0] > bpthresh) {
-
-	    /* voiced mode: pitch synchronous window length */
-	    temp = sub_pitch;
-	    par->gain[i] = gain_ana(&speech[FRAME_BEG+(i+1)*GAINFR],
-				    temp,MIN_GAINFR,2*PITCHMAX);
-	}
-	else {
-	    temp = 1.33f*GAINFR - 0.5f;
-	    par->gain[i] = gain_ana(&speech[FRAME_BEG+(i+1)*GAINFR],
-				    temp,0,2*PITCHMAX);
-	}
+		if (par->bpvc[0] > bpthresh) {
+			/* voiced mode: pitch synchronous window length */
+			temp = sub_pitch;
+			par->gain[i] = gain_ana(&speech[FRAME_BEG+(i+1)*GAINFR],
+						temp,MIN_GAINFR,2*PITCHMAX);
+		}else {
+			temp = 1.33f*GAINFR - 0.5f;
+			par->gain[i] = gain_ana(&speech[FRAME_BEG+(i+1)*GAINFR],
+						temp,0,2*PITCHMAX);
+		}
     }
     
     /* Update average pitch value */
@@ -180,11 +177,11 @@ void melp_ana(float sp_in[],struct melp_param *par)
     /*	Calculate Fourier coefficients of residual signal from quantized LPC */
     fill(par->fs_mag,1.0,NUM_HARM);
     if (par->bpvc[0] > bpthresh) {
-	lpc_lsp2pred(par->lsf,lpc,LPC_ORD);
-	zerflt(&speech[(FRAME_END-(LPC_FRAME/2))],lpc,sigbuf,
-	       LPC_ORD,LPC_FRAME);
-	window(sigbuf,win_cof,sigbuf,LPC_FRAME);
-	find_harm(sigbuf, par->fs_mag, par->pitch, NUM_HARM, LPC_FRAME);
+		lpc_lsp2pred(par->lsf,lpc,LPC_ORD);
+		zerflt(&speech[(FRAME_END-(LPC_FRAME/2))],lpc,sigbuf,
+			   LPC_ORD,LPC_FRAME);
+		window(sigbuf,win_cof,sigbuf,LPC_FRAME);
+		find_harm(sigbuf, par->fs_mag, par->pitch, NUM_HARM, LPC_FRAME);
     }
     
     /* quantize Fourier coefficients */

@@ -52,15 +52,15 @@ Group (phone 972 480 7442).
 
 /* ====== External memory ====== */
 
-#define FRAME				180                          /* speech frame size */
+#define FRAME				180              /* speech frame size */
 #define NF					3                /* number of frames in one block */
 #define BLOCK				(NF*FRAME)
 
 typedef unsigned short uint16_t;
 typedef signed short int16_t;
 
-int	  mode;
-int   chwordsize;
+int		mode;
+int		chwordsize;
 int		frameSize;
 int		rate;
 
@@ -78,7 +78,7 @@ unsigned int	chbuf[CHSIZE * NF];                     /* channel bit data buffer 
 static void		parseCommandLine(int argc, char *argv[]);
 static void		printHelpMessage(char *argv[]);
 
-static char *cmd_line[] = {"melpe", "-i", "test_in.raw", "-o", "test_out.raw", 0};
+static char *cmd_line[] = {"melp", "-i", "test_in.raw", "-o", "test_out.raw", 0};
 
 extern int main_cmd(int argc, char *argv[]);
 int main()
@@ -103,14 +103,10 @@ int main()
 int main_cmd(int argc, char *argv[])
 {
 	int	length;
-	int bitNum12;
-	int bitNum24;
 	int frame_count;
 	int i;
 
 	float	speech_in[BLOCK], speech_out[BLOCK];
-	int16_t	bitBufSize, bitBufSize12, bitBufSize24;
-                                          /* size of the bitstream buffer */
 	int		eof_reached = FALSE;
 	FILE	*fp_in, *fp_out;
 
@@ -129,105 +125,30 @@ int main_cmd(int argc, char *argv[])
 
 	/* ====== Initialize MELP analysis and synthesis ====== */
 	frameSize = (int16_t) FRAME;
-	/* Computing bit=Num = rate * frameSize / FSAMP.  Note that bitNum        */
-	/* computes the number of bytes written to the channel and it has to be   */
-	/* exact.  We first carry out the division and then have the multiplica-  */
-	/* tion with rounding.                                                    */
-    bitNum12 = 81;
-    bitNum24 = 54;
-    if( chwordsize == 8 ){
-        // packing the bitstream
-        bitBufSize12 = 11;
-        bitBufSize24 = 7;
-    }else if( chwordsize == 6 ){
-        bitBufSize12 = 14;
-        bitBufSize24 = 9;
-    }else{
-        fprintf(stderr,"Channel word size is wrong!\n");
-        exit(-1);
-    }
-
-    if (rate == RATE2400){
-		frameSize = FRAME;
-		bitBufSize = bitBufSize24;
-	} else {
-		frameSize = BLOCK;
-		bitBufSize = bitBufSize12;
-	}
-
 	for(i = 0; i < NF; i++){
 		melp_par[i].chptr = &chbuf[i*CHSIZE];
 	}
-
-	if (mode != SYNTHESIS)
-	{
-		melp_ana_init();
-	}
-	if (mode != ANALYSIS)
-	{
-		melp_syn_init();
-	}
+	melp_ana_init();
+	melp_syn_init();
 
 	/* ====== Run MELP coder on input signal ====== */
-
 	frame_count = 0;
 	eof_reached = FALSE;
 	while (!eof_reached)
 	{
 		fprintf(stderr, "Frame = %ld\r", frame_count);
 
-
 		/* Perform MELP analysis */
-		if (mode != SYNTHESIS){
-			/* read input speech */
-			length = readbl(speech_in, fp_in, frameSize);
-			if (length < frameSize){
-				v_zap(&speech_in[length], (int16_t) (FRAME - length));
-				eof_reached = TRUE;
-			}
-
-			melp_ana(speech_in, melp_par);
-
-			/* ---- Write channel output if needed ---- */
-            if (mode == ANALYSIS){
-                if( chwordsize == 8 ){
-				    fwrite(chbuf, sizeof(unsigned char), bitBufSize, fp_out);
-                }else{
-    				int i;
-	        		unsigned int bitData;
-			        for(i = 0; i < bitBufSize; i++){
-				        bitData = (unsigned int)(chbuf[i]);
-				        fwrite(&bitData, sizeof(unsigned int), 1, fp_out);
-			        }
-		        }
-            }
+		/* read input speech */
+		length = readbl(speech_in, fp_in, frameSize);
+		if (length < frameSize){
+			v_zap(&speech_in[length], (int16_t) (FRAME - length));
+			eof_reached = TRUE;
 		}
+		melp_ana(speech_in, melp_par);
 		/* ====== Perform MELP synthesis (skip first frame) ====== */
-		if (mode != ANALYSIS){
-
-			/* Read channel input if needed */
-			if (mode == SYNTHESIS){
-                if( chwordsize == 8 ){
-				    length = fread(chbuf, sizeof(unsigned char), bitBufSize,
-					    		   fp_in);
-                }else{
-		        	int i, readNum;
-    				unsigned int bitData;
-	        		for(i = 0; i < bitBufSize; i++){
-			        	readNum = fread(&bitData,sizeof(unsigned int),1,fp_in);
-    					if( readNum != 1 )	break;
-	        			chbuf[i] = (unsigned char)bitData;
-			        }	
-    				length = i;		
-                }
-				if (length < bitBufSize){
-					eof_reached = TRUE;
-					break;
-				}
-			}
-			melp_syn(melp_par, speech_out);
-			writebl(speech_out, fp_out, frameSize);
-		}
+		melp_syn(melp_par, speech_out);
+		writebl(speech_out, fp_out, frameSize);
 		frame_count ++;
 	}
 

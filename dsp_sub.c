@@ -305,9 +305,7 @@ int readbl(float input[], FILE *fp_in, int size)
 /*      Return 1 if erasure, otherwise 0.                       */
 /*								*/
 int unpack_code(unsigned int **p_ch_beg, int *p_ch_bit, int *p_code, int numbits, int wsize, unsigned int ERASE_MASK)
-
 {
-
     int ret_code;
     int	i,ch_bit;
     unsigned int *ch_word;
@@ -349,7 +347,6 @@ void window(float input[], float win_cof[], float output[], int npts)
 
     for (i = 0; i < npts; i++ )
       output[i] = win_cof[i]*input[i];
-
 }
 
 /*								*/
@@ -373,17 +370,13 @@ void writebl(float output[], FILE *fp_out, int size)
 #endif
     
     for (i = 0; i < size; i++ ) {
-	temp = output[i];
-	/* clamp to +- SIGMAX */
-	if (temp > SIGMAX)
-	  temp = SIGMAX;
-	if (temp < -SIGMAX)
-	  temp = -SIGMAX;
-	int_sp[i] = (SPEECH)temp;
-
+		temp = output[i];
+		/* clamp to +- SIGMAX */
+		if (temp > SIGMAX)	  temp = SIGMAX;
+		if (temp < -SIGMAX)	  temp = -SIGMAX;
+		int_sp[i] = (SPEECH)temp;
     }
     fwrite(int_sp,sizeof(SPEECH),size,fp_out);
-
 }
 
 #undef MAXSIZE
