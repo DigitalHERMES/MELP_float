@@ -46,14 +46,14 @@ float *vq_lspw(float *w,float *lsp,float *a,int p)
 {
     int j;
 
-        for(j=0; j < p; j++)
-        {
-            w[j] = (float)powf(lpc_aejw(a,lsp[j]*M_PI,p),-0.3f);
-            if (j == 8)
-                w[j] *= 0.64f;
-            else if (j == 9)
-                w[j] *= 0.16f;
-        }
+    for(j=0; j < p; j++)
+    {
+        w[j] = (float)powf(lpc_aejw(a,lsp[j]*M_PI,p),-0.3f);
+        if (j == 8)
+            w[j] *= 0.64f;
+        else if (j == 9)
+            w[j] *= 0.16f;
+    }
 
     return(w);
 } /* VQ_LSPW */
@@ -347,8 +347,7 @@ float *vq_msd2(float *cb, float *u, float *u_est, float *a, int *indices, int *l
     if (u_est)
     {
         (void)v_equ(u_hat,u_est,p);
-    }
-    else
+    } else
     {
         (void)v_zap(u_hat,p);
     }
@@ -361,7 +360,7 @@ float *vq_msd2(float *cb, float *u, float *u_est, float *a, int *indices, int *l
         cb_currentstage += levels[i]*p;
     }
 
-    return(u);
+    return(u_hat);
 }
 
 /* VQ_ENC -
@@ -389,15 +388,15 @@ float vq_enc(float *cb, float *u, int levels, int p, float *u_hat, int *indices)
     dmin = BIGVAL;
     p_cb = cb;
     for (i = 0; i < levels; i++) {
-	d = 0.0;
-	for (j = 0; j < p; j++) {
-	    d += SQR(u[j] - *p_cb);
-	    p_cb++;
-	}
-	if (d < dmin) {
-	    dmin = d;
-	    index = i;
-	}
+		d = 0.0;
+		for (j = 0; j < p; j++) {
+			d += SQR(u[j] - *p_cb);
+			p_cb++;
+		}
+		if (d < dmin) {
+			dmin = d;
+			index = i;
+		}
     }
 
     /* Update index and quantized value, and return minimum distance */
@@ -418,12 +417,8 @@ void vq_fsw(float *w_fs, int num_harm, float pitch)
     /* Calculate fundamental frequency */
     w0 = 2 * M_PI/pitch;    
     for(j=0; j < num_harm; j++) {
-
-	/* Bark-scale weighting */
-	w_fs[j] = 117.0f / (25.0f + 75.0f *
-			   powf(1.0f + 1.4f * SQR(w0 * (j+1) / (0.25f * M_PI)), 0.69f));
+		/* Bark-scale weighting */
+		w_fs[j] = 117.0f / (25.0f + 75.0f *
+				   powf(1.0f + 1.4f * SQR(w0 * (j+1) / (0.25f * M_PI)), 0.69f));
     }
-
 }
-
-

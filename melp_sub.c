@@ -69,7 +69,6 @@ static float envdel_data[NUM_BANDS*ENV_ORD];
 
 void bpvc_ana(float speech[], float fpitch[], float bpvc[], float pitch[])
 {
-
     float pcorr, temp;
     int j;
 	
@@ -85,49 +84,45 @@ void bpvc_ana(float speech[], float fpitch[], float bpvc[], float pitch[])
 				&bpvc[0],fpitch[0],5,PITCHMIN,PITCHMAX,MINLENGTH);
     
     for (j = 1; j < NUM_PITCHES; j++) {
-	temp = frac_pch(&sigbuf[FIRST_CNTR],
-			&pcorr,fpitch[j],5,PITCHMIN,PITCHMAX,MINLENGTH);
-	
-	/* choose largest correlation value */
-	if (pcorr > bpvc[0]) {
-	    *pitch = temp;
-	    bpvc[0] = pcorr; 
-	}
-	
+		temp = frac_pch(&sigbuf[FIRST_CNTR],
+				&pcorr,fpitch[j],5,PITCHMIN,PITCHMAX,MINLENGTH);
+		
+		/* choose largest correlation value */
+		if (pcorr > bpvc[0]) {
+			*pitch = temp;
+			bpvc[0] = pcorr; 
+		}	
     }
     
     /* Calculate bandpass voicing for frames */
-    
     for (j = 1; j < NUM_BANDS; j++) {
+		/* Bandpass filter input speech */
+		v_equ(&sigbuf[PIT_BEG-BPF_ORD],&bpfdel[j][0],BPF_ORD);
+		polflt(&speech[PIT_FR_BEG],&bpf_den[j*(BPF_ORD+1)],&sigbuf[PIT_BEG],
+			   BPF_ORD,PIT_P_FR);
+		v_equ(&bpfdel[j][0],&sigbuf[PIT_BEG+FRAME-BPF_ORD],BPF_ORD);
+		zerflt(&sigbuf[PIT_BEG],&bpf_num[j*(BPF_ORD+1)],&sigbuf[PIT_BEG],
+			   BPF_ORD,PIT_P_FR);
+		
+		/* Check correlations for each frame */
+		temp = frac_pch(&sigbuf[FIRST_CNTR],
+				&bpvc[j],*pitch,0,PITCHMIN,PITCHMAX,MINLENGTH);
 
-	/* Bandpass filter input speech */
-	v_equ(&sigbuf[PIT_BEG-BPF_ORD],&bpfdel[j][0],BPF_ORD);
-	polflt(&speech[PIT_FR_BEG],&bpf_den[j*(BPF_ORD+1)],&sigbuf[PIT_BEG],
-	       BPF_ORD,PIT_P_FR);
-	v_equ(&bpfdel[j][0],&sigbuf[PIT_BEG+FRAME-BPF_ORD],BPF_ORD);
-	zerflt(&sigbuf[PIT_BEG],&bpf_num[j*(BPF_ORD+1)],&sigbuf[PIT_BEG],
-	       BPF_ORD,PIT_P_FR);
-	
-	/* Check correlations for each frame */
-	temp = frac_pch(&sigbuf[FIRST_CNTR],
-			&bpvc[j],*pitch,0,PITCHMIN,PITCHMAX,MINLENGTH);
-
-	/* Calculate envelope of bandpass filtered input speech */
-	temp = envdel2[j];
-	envdel2[j] = sigbuf[PIT_BEG+FRAME-1];
-	v_equ(&sigbuf[PIT_BEG-ENV_ORD],&envdel[j][0],ENV_ORD);
-	envelope(&sigbuf[PIT_BEG],temp,&sigbuf[PIT_BEG],PIT_P_FR);
-	v_equ(&envdel[j][0],&sigbuf[PIT_BEG+FRAME-ENV_ORD],ENV_ORD);
-	
-	/* Check correlations for each frame */
-	temp = frac_pch(&sigbuf[FIRST_CNTR],&pcorr,
-			*pitch,0,PITCHMIN,PITCHMAX,MINLENGTH);
-					
-	/* reduce envelope correlation */
-	pcorr -= 0.1f;
-	
-	if (pcorr > bpvc[j])
-	    bpvc[j] = pcorr;
+		/* Calculate envelope of bandpass filtered input speech */
+		temp = envdel2[j];
+		envdel2[j] = sigbuf[PIT_BEG+FRAME-1];
+		v_equ(&sigbuf[PIT_BEG-ENV_ORD],&envdel[j][0],ENV_ORD);
+		envelope(&sigbuf[PIT_BEG],temp,&sigbuf[PIT_BEG],PIT_P_FR);
+		v_equ(&envdel[j][0],&sigbuf[PIT_BEG+FRAME-ENV_ORD],ENV_ORD);
+		
+		/* Check correlations for each frame */
+		temp = frac_pch(&sigbuf[FIRST_CNTR],&pcorr,
+				*pitch,0,PITCHMIN,PITCHMAX,MINLENGTH);
+						
+		/* reduce envelope correlation */
+		pcorr -= 0.1f;		
+		if (pcorr > bpvc[j])
+			bpvc[j] = pcorr;
     }
 }
 
@@ -202,7 +197,6 @@ void dc_rmv(float sigin[], float sigout[], float dcdel[], int frame)
 
     /* Free scratch buffer */
     // MEM_FREE(free,sigbuf);
-
 }
 
 /*
@@ -239,8 +233,7 @@ float gain_ana(float sigin[], float pitch, int minlength, int maxlength)
     
     /* Calculate RMS gain in dB */
     gain = 10.0f*log10f(0.01f + (v_magsq(&sigin[-(length/2)],length) / length));
-    if (gain < MINGAIN)
-      gain = MINGAIN;
+    if (gain < MINGAIN) gain = MINGAIN;
 
     return(gain);
 }
@@ -264,14 +257,9 @@ float lin_int_bnd(float x,float xmin,float xmax,float ymin,float ymax)
 {
     float y;
 			
-    if (x <= xmin)
-      y = ymin;
-
-    else if (x >= xmax)
-      y = ymax;
-
-    else 
-      y = ymin + (x-xmin)*(ymax-ymin)/(xmax-xmin);
+    if (x <= xmin) y = ymin;
+    else if (x >= xmax) y = ymax;
+    else y = ymin + (x-xmin)*(ymax-ymin)/(xmax-xmin);
 
     return(y);
 }
@@ -296,23 +284,14 @@ float lin_int_bnd(float x,float xmin,float xmax,float ymin,float ymax)
 void noise_est(float gain,float *noise_gain,float up,float down,float min,float max)
 
 {
-
     /* Update noise_gain */
-    if (gain > *noise_gain+up)
-      *noise_gain = *noise_gain+up;
-
-    else if (gain < *noise_gain+down)
-      *noise_gain = *noise_gain+down;
-
-    else
-      *noise_gain = gain;
+    if (gain > *noise_gain+up) *noise_gain = *noise_gain+up;
+    else if (gain < *noise_gain+down) *noise_gain = *noise_gain+down;
+	else *noise_gain = gain;
 
     /* Constrain total range of noise_gain */
-    if (*noise_gain < min)
-      *noise_gain = min;
-    if (*noise_gain > max)
-      *noise_gain = max;
-		
+    if (*noise_gain < min) *noise_gain = min;
+    if (*noise_gain > max) *noise_gain = max;
 }
 
 /*
@@ -337,22 +316,18 @@ void noise_sup(float *gain,float noise_gain,float max_noise,float max_atten,floa
     float gain_lev,suppress;
 			
     /* Reduce effect for louder background noise */
-    if (noise_gain > max_noise)
-      noise_gain = max_noise;
+    if (noise_gain > max_noise) noise_gain = max_noise;
 
     /* Calculate suppression factor */
     gain_lev = *gain - (noise_gain + nfact);
     if (gain_lev > 0.001f) {
-	suppress = -10.0f*log10f(1.0f - powf(10.0f,-0.1f*gain_lev));
-	if (suppress > max_atten)
-	  suppress = max_atten;
-    }
-    else
+		suppress = -10.0f*log10f(1.0f - powf(10.0f,-0.1f*gain_lev));
+		if (suppress > max_atten) suppress = max_atten;
+    } else
       suppress = max_atten;
 
     /* Apply suppression to input gain */
     *gain -= suppress;
-
 }
 
 /*
@@ -373,44 +348,38 @@ void noise_sup(float *gain,float noise_gain,float max_noise,float max_atten,floa
 #define INVALID_BPVC 0001
 
 int q_bpvc(float *bpvc,int *bpvc_index,float bpthresh,int num_bands)
-
 {
     int j, uv_flag;
 	
     uv_flag = 1;
 
     if (bpvc[0] > bpthresh) {
+		/* Voiced: pack bandpass voicing */
+		uv_flag = 0;
+		*bpvc_index = 0;
+		bpvc[0] = 1.0;
 		
-	/* Voiced: pack bandpass voicing */
-	uv_flag = 0;
-	*bpvc_index = 0;
-	bpvc[0] = 1.0;
-	
-	for (j = 1; j < num_bands; j++) {
-	    *bpvc_index <<= 1; /* left shift */
-	    if (bpvc[j] > bpthresh) {
-		bpvc[j] = 1.0;
-		*bpvc_index |= 1;
-	    }
-	    else {
-		bpvc[j] = 0.0;
-		*bpvc_index |= 0;
-	    }
-	}
-	
-	/* Don't use invalid code (only top band voiced) */
-	if (*bpvc_index == INVALID_BPVC) {
-	    bpvc[(num_bands-1)] = 0.0;
-	    *bpvc_index = 0;
-	}
-    }
-    
-    else {
-	
-	/* Unvoiced: force all bands unvoiced */
-	*bpvc_index = 0;
-	for (j = 0; j < num_bands; j++)
-	    bpvc[j] = 0.0;
+		for (j = 1; j < num_bands; j++) {
+			*bpvc_index <<= 1; /* left shift */
+			if (bpvc[j] > bpthresh) {
+				bpvc[j] = 1.0;
+				*bpvc_index |= 1;
+			}else {
+				bpvc[j] = 0.0;
+				*bpvc_index |= 0;
+			}
+		}
+		
+		/* Don't use invalid code (only top band voiced) */
+		if (*bpvc_index == INVALID_BPVC) {
+			bpvc[(num_bands-1)] = 0.0;
+			*bpvc_index = 0;
+		}
+    }else {
+		/* Unvoiced: force all bands unvoiced */
+		*bpvc_index = 0;
+		for (j = 0; j < num_bands; j++)
+			bpvc[j] = 0.0;
     }
 
     return(uv_flag);
@@ -422,31 +391,26 @@ void q_bpvc_dec(float *bpvc,int *bpvc_index,int uv_flag,int num_bands)
     int j;
 
     if (uv_flag) {
-	
-	/* Unvoiced: set all bpvc to 0 */
-	*bpvc_index = 0;
-	bpvc[0] = 0.0;
-    }
-    
-    else {
-	
-	/* Voiced: set bpvc[0] to 1.0 */
-	bpvc[0] = 1.0;
+		/* Unvoiced: set all bpvc to 0 */
+		*bpvc_index = 0;
+		bpvc[0] = 0.0;
+    }else {
+		/* Voiced: set bpvc[0] to 1.0 */
+		bpvc[0] = 1.0;
     }
     
     if (*bpvc_index == INVALID_BPVC) {
-
-	/* Invalid code received: set higher band voicing to zero */
-	*bpvc_index = 0;
+		/* Invalid code received: set higher band voicing to zero */
+		*bpvc_index = 0;
     }
 
     /* Decode remaining bands */
     for (j = num_bands-1; j > 0; j--) {
-	if ((*bpvc_index & 1) == 1)
-	    bpvc[j] = 1.0;
-	else
-	    bpvc[j] = 0.0;
-	*bpvc_index >>= 1;
+		if ((*bpvc_index & 1) == 1)
+			bpvc[j] = 1.0;
+		else
+			bpvc[j] = 0.0;
+		*bpvc_index >>= 1;
     }
 }
 
@@ -467,7 +431,6 @@ void q_bpvc_dec(float *bpvc,int *bpvc_index,int uv_flag,int num_bands)
 #define GAIN_INT_DB 5.0f
 
 void q_gain(float *gain,int *gain_index,float gn_qlo,float gn_qup,int gn_qlev)
-
 {
     static float prev_gain = 0.0f;
     float temp,temp2;
@@ -599,7 +562,7 @@ void scale_adj(float *speech, float gain, float *prev_scale, int length, int sca
 
     /* interpolate scale factors for first SCALEOVER points */
     for (i = 1; i < scale_over; i++) {
-	speech[i-1] *= ((scale*i + *prev_scale*(scale_over-i))
+		speech[i-1] *= ((scale*i + *prev_scale*(scale_over-i))
 			      * (1.0f/scale_over) );
     }
     
@@ -607,6 +570,5 @@ void scale_adj(float *speech, float gain, float *prev_scale, int length, int sca
     v_scale(&speech[scale_over-1],scale,length-scale_over+1);
 
     /* Update previous scale factor for next call */
-    *prev_scale = scale;
-			
+    *prev_scale = scale;			
 }

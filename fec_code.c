@@ -72,24 +72,24 @@ void fec_code(struct melp_param *par)
 ** Code 4 MSB of first vq stage index using (8,4) Hamming code; parity bits in
 ** bpvc index.
 */
-	vgetbits(codewd84,par->msvq_index[0],6,4);
+	vgetbits(codewd84,par->msvq_par.indices[0],6,4);
 	sbc_enc(codewd84,8,4,&pmat84[0][0]);
 	par->bpvc_index=vsetbits(par->bpvc_index,3,4,&codewd84[4]);
 /*
 ** Code 3 LSB of first vq stage index using (7,4) Hamming code; parity bits
 ** in 3 MSB of fsvq index.
 */
-	vgetbits(codewd74,par->msvq_index[0],2,3);
+	vgetbits(codewd74,par->msvq_par.indices[0],2,3);
 	codewd74[3] = 0;
 	sbc_enc(codewd74,7,4,&pmat74[0][0]);
-	par->fsvq_index[0]=vsetbits(par->fsvq_index[0],7,3,&codewd74[4]);
+	par->fsvq_par.indices[0]=vsetbits(par->fsvq_par.indices[0],7,3,&codewd74[4]);
 /*
 ** Code 4 MSB of second gain index using (7,4) Hamming code; parity bits in
 ** next 3 MSB of fsvq index.
 */
 	vgetbits(codewd74,par->gain_index[1],4,4);
 	sbc_enc(codewd74,7,4,&pmat74[0][0]);
-	par->fsvq_index[0]=vsetbits(par->fsvq_index[0],4,3,&codewd74[4]);
+	par->fsvq_par.indices[0]=vsetbits(par->fsvq_par.indices[0],4,3,&codewd74[4]);
 /*
 ** Code LSB of second gain index, first gain index using (7,4) Hamming code;
 ** parity bits in 2 LSB of fsvq index, jitter index bit.
@@ -97,13 +97,12 @@ void fec_code(struct melp_param *par)
 	vgetbits(codewd74,par->gain_index[1],0,1);
 	vgetbits(&codewd74[1],par->gain_index[0],2,3);
 	sbc_enc(codewd74,7,4,&pmat74[0][0]);
-	par->fsvq_index[0]=vsetbits(par->fsvq_index[0],1,2,&codewd74[4]);
+	par->fsvq_par.indices[0]=vsetbits(par->fsvq_par.indices[0],1,2,&codewd74[4]);
 	par->jit_index=vsetbits(par->jit_index,0,1,&codewd74[6]);
     }
 
     /* Encode pitch index */
     par->pitch_index = pitch_enc[par->pitch_index];
-
 }
 
 
@@ -121,8 +120,8 @@ int fec_decode(struct melp_param *par, int erase)
 ** pitch index INVAL_PIND.  Otherwise, convert pitch index into quantization
 ** level.
 */
-		par->uv_flag = (par->pitch_index == UV_PIND);
-		erase |= (par->pitch_index == INVAL_PIND);
+	par->uv_flag = (par->pitch_index == UV_PIND);
+	erase |= (par->pitch_index == INVAL_PIND);
     if (!par->uv_flag && !erase )
 				par->pitch_index-=2; /* Subtract to acct. for reserved pitch codes.*/
 
@@ -135,11 +134,11 @@ int fec_decode(struct melp_param *par, int erase)
 ** Decode 4 MSB of first vq stage index using (8,4) Hamming code; parity bits
 ** in bpvc index.  Set bpvc index to zero.
 */
-	vgetbits(codewd84,par->msvq_index[0],6,4);
+	vgetbits(codewd84,par->msvq_par.indices[0],6,4);
 	vgetbits(&codewd84[4],par->bpvc_index,3,4);
 	berr_pos=sbc_dec(codewd84,8,4,&pmat84[0][0],syntab84);
 	erase |= berr_pos == BEP_UNCORR;
-	par->msvq_index[0]=vsetbits(par->msvq_index[0],6,4,codewd84);
+	par->msvq_par.indices[0]=vsetbits(par->msvq_par.indices[0],6,4,codewd84);
 	par->bpvc_index = 0;
 
 	/* Perform remaining decoding only if no frame repeat flagged. */
@@ -149,17 +148,17 @@ int fec_decode(struct melp_param *par, int erase)
 ** Decode 3 LSB of first vq stage index using (7,4) Hamming code; parity bits
 ** in 3 MSB of fsvq index.
 */
-	    vgetbits(codewd74,par->msvq_index[0],2,3);
+	    vgetbits(codewd74,par->msvq_par.indices[0],2,3);
 	    codewd74[3] = 0;
-	    vgetbits(&codewd74[4],par->fsvq_index[0],7,3);
+	    vgetbits(&codewd74[4],par->fsvq_par.indices[0],7,3);
 	    berr_pos=sbc_dec(codewd74,7,4,&pmat74[0][0],syntab74);
-	    par->msvq_index[0]=vsetbits(par->msvq_index[0],2,3,codewd74);
+	    par->msvq_par.indices[0]=vsetbits(par->msvq_par.indices[0],2,3,codewd74);
 /*
 ** Decode 4 MSB of second gain index using (7,4) Hamming code; parity bits in
 ** next 3 MSB of fsvq index.
 */
 	    vgetbits(codewd74,par->gain_index[1],4,4);
-	    vgetbits(&codewd74[4],par->fsvq_index[0],4,3);
+	    vgetbits(&codewd74[4],par->fsvq_par.indices[0],4,3);
 	    berr_pos=sbc_dec(codewd74,7,4,&pmat74[0][0],syntab74);
 	    par->gain_index[1]=vsetbits(par->gain_index[1],4,4,codewd74);
 /*
@@ -169,7 +168,7 @@ int fec_decode(struct melp_param *par, int erase)
 */
 	    vgetbits(codewd74,par->gain_index[1],0,1);
 	    vgetbits(&codewd74[1],par->gain_index[0],2,3);
-	    vgetbits(&codewd74[4],par->fsvq_index[0],1,2);
+	    vgetbits(&codewd74[4],par->fsvq_par.indices[0],1,2);
 	    vgetbits(&codewd74[6],par->jit_index,0,1);
 	    berr_pos=sbc_dec(codewd74,7,4,&pmat74[0][0],syntab74);
 	    par->gain_index[1]=vsetbits(par->gain_index[1],0,1,codewd74);

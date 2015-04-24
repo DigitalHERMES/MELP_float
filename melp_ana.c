@@ -40,22 +40,12 @@ Group (phone 972 480 7442).
 #include "dsp_sub.h"
 
 /* memory definitions */
- 
 static float sigbuf[SIG_LENGTH];
 static float speech[IN_BEG+FRAME];
 static float dcdel[DC_ORD];
 static float lpfsp_del[LPF_ORD];
 static float pitch_avg;
 static float fpitch[2];
-static struct msvq_param vq_par;  /* MSVQ parameters */
-static int vq_par_num_levels[4];
-static int vq_par_indices[4];
-static int vq_par_num_bits[4];
-
-static struct msvq_param fs_vq_par;  /* Fourier series VQ parameters */
-static int fs_vq_par_num_levels[1];
-static int fs_vq_par_indices[1];
-static int fs_vq_par_num_bits[1];
 
 static float w_fs[NUM_HARM];
 static float r[LPC_ORD+1], lpc[LPC_ORD+1];
@@ -154,8 +144,7 @@ void melp_ana(float sp_in[],struct melp_param *par)
     
     /* Quantize LSF's with MSVQ */
     vq_lspw(weights, &par->lsf[1], lpc, LPC_ORD);
-    msvq_enc(&par->lsf[1], weights, &par->lsf[1], vq_par);
-    par->msvq_index = vq_par.indices;
+    msvq_enc(&par->lsf[1], weights, &par->lsf[1], par->msvq_par);
     
     /* Force minimum LSF bandwidth (separation) */
     lpc_clamp(par->lsf,BWMIN,LPC_ORD);
@@ -187,14 +176,8 @@ void melp_ana(float sp_in[],struct melp_param *par)
     /* quantize Fourier coefficients */
     /* pre-weight vector, then use Euclidean distance */
     window(&par->fs_mag[0],w_fs,&par->fs_mag[0],NUM_HARM);
-    fsvq_enc(&par->fs_mag[0], &par->fs_mag[0], fs_vq_par);
+    fsvq_enc(&par->fs_mag[0], &par->fs_mag[0], par->fsvq_par);
     
-    /* Set MELP indices to point to same array */
-    par->fsvq_index = fs_vq_par.indices;
-
-    /* Update MSVQ information */
-    par->msvq_stages = vq_par.num_stages;
-    par->msvq_bits = vq_par.num_bits;
 
     /* Write channel bitstream */
     melp_chn_write(par);
@@ -211,9 +194,8 @@ void melp_ana(float sp_in[],struct melp_param *par)
  */
 
 
-void melp_ana_init()
+void melp_ana_init(melp_param_t *par)
 {
-
     int j;
 
     bpvc_ana_init();
@@ -227,64 +209,43 @@ void melp_ana_init()
 	
     /* Initialize multi-stage vector quantization (read codebook) */
 	
-    vq_par.num_best = MSVQ_M;
-    vq_par.num_stages = 4;
-    vq_par.dimension = 10;
-
-    /* 
-     * Allocate memory for number of levels per stage and indices
-     * and for number of bits per stage 
-     */
- 
-    vq_par.num_levels = vq_par_num_levels;		// MEM_ALLOC(MALLOC,vq_par.num_levels,vq_par.num_stages,int);
-    vq_par.indices = vq_par_indices;			// MEM_ALLOC(MALLOC,vq_par.indices,vq_par.num_stages,int);
-    vq_par.num_bits = vq_par_num_bits;			// MEM_ALLOC(MALLOC,vq_par.num_bits,vq_par.num_stages,int);
+    par->msvq_par.num_best = MSVQ_M;
+    par->msvq_par.num_stages = 4;
+    par->msvq_par.dimension = 10;
 	
-    vq_par.num_levels[0] = 128;
-    vq_par.num_levels[1] = 64;
-    vq_par.num_levels[2] = 64;
-    vq_par.num_levels[3] = 64;
+    par->msvq_par.levels[0] = 128;
+    par->msvq_par.levels[1] = 64;
+    par->msvq_par.levels[2] = 64;
+    par->msvq_par.levels[3] = 64;
 	
-    vq_par.num_bits[0] = 7;
-    vq_par.num_bits[1] = 6;
-    vq_par.num_bits[2] = 6;
-    vq_par.num_bits[3] = 6;
+    par->msvq_par.bits[0] = 7;
+    par->msvq_par.bits[1] = 6;
+    par->msvq_par.bits[2] = 6;
+    par->msvq_par.bits[3] = 6;
 	
-    vq_par.cb = msvq_cb;
+    par->msvq_par.cb = msvq_cb;
 	
     /* Scale codebook to 0 to 1 */
-    v_scale(vq_par.cb,(2.0f/FSAMP),3200);
+    v_scale(par->msvq_par.cb,(2.0f/FSAMP),3200);
 
     /* Initialize Fourier magnitude vector quantization (read codebook) */
 	
-    fs_vq_par.num_best = 1;
-    fs_vq_par.num_stages = 1;
-    fs_vq_par.dimension = NUM_HARM;
+    par->fsvq_par.num_best = 1;
+    par->fsvq_par.num_stages = 1;
+    par->fsvq_par.dimension = NUM_HARM;
 
-    /* 
-     * Allocate memory for number of levels per stage and indices
-     * and for number of bits per stage 
-     */
- 
-    fs_vq_par.num_levels = fs_vq_par_num_levels;			// MEM_ALLOC(MALLOC,fs_vq_par.num_levels,fs_vq_par.num_stages,int);
-    fs_vq_par.indices = fs_vq_par_indices;					// MEM_ALLOC(MALLOC,fs_vq_par.indices,fs_vq_par.num_stages,int);
-    fs_vq_par.num_bits = fs_vq_par_num_bits;				// MEM_ALLOC(MALLOC,fs_vq_par.num_bits,fs_vq_par.num_stages,int);
-
-    fs_vq_par.num_levels[0] = FS_LEVELS;
-    fs_vq_par.num_bits[0] = FS_BITS;
-    fs_vq_par.cb = fsvq_cb;
+    par->fsvq_par.levels[0] = FS_LEVELS;
+    par->fsvq_par.bits[0] = FS_BITS;
+    par->fsvq_par.cb = fsvq_cb;
 	
     /* Initialize fixed MSE weighting and inverse of weighting */
-	
     vq_fsw(w_fs, NUM_HARM, 60.0);
 	
-    /* Pre-weight codebook (assume single stage only) */
-	
+    /* Pre-weight codebook (assume single stage only) */	
     if (fsvq_weighted == 0)
-      {
-	  fsvq_weighted = 1;
-	  for (j = 0; j < fs_vq_par.num_levels[0]; j++)
-	    window(&fs_vq_par.cb[j*NUM_HARM],w_fs,&fs_vq_par.cb[j*NUM_HARM],
-		   NUM_HARM);
-      }
+	{
+		fsvq_weighted = 1;
+		for (j = 0; j < par->fsvq_par.levels[0]; j++)
+		window(&par->fsvq_par.cb[j*NUM_HARM],w_fs,&par->fsvq_par.cb[j*NUM_HARM], NUM_HARM);
+	}
 }

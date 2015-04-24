@@ -41,9 +41,7 @@ static float sigbuf[LPF_ORD+PITCH_FR];
 
 
 float double_chk(float sig_in[], float *pcorr, float pitch, float pdouble, int pmin, int pmax, int lmin)
-
 {
-
     int mult;
     float corr,thresh;
     float temp_pit;
@@ -53,21 +51,20 @@ float double_chk(float sig_in[], float *pcorr, float pitch, float pdouble, int p
 
     /* Check pitch submultiples from shortest to longest */
     for (mult = NUM_MULT; mult >= 2; mult--) {
-	temp_pit = pitch / mult;
-	if (temp_pit >= pmin) {
-	    temp_pit = frac_pch(sig_in,&corr,temp_pit,0,pmin,pmax,lmin);
-	    double_ver(sig_in,&corr,temp_pit,pmin,pmax,lmin);
-	    
-	    /* stop if submultiple greater than threshold */
-	    if (corr > thresh) {
-
-		/* refine estimate one more time since previous window */
-		/* may be off center slightly and temp_pit has moved */
-		pitch = frac_pch(sig_in,pcorr,temp_pit,0,pmin,pmax,lmin);
-		break;
-	    }
+		temp_pit = pitch / mult;
+		if (temp_pit >= pmin) {
+			temp_pit = frac_pch(sig_in,&corr,temp_pit,0,pmin,pmax,lmin);
+			double_ver(sig_in,&corr,temp_pit,pmin,pmax,lmin);
+		    
+			/* stop if submultiple greater than threshold */
+			if (corr > thresh) {
+				/* refine estimate one more time since previous window */
+				/* may be off center slightly and temp_pit has moved */
+				pitch = frac_pch(sig_in,pcorr,temp_pit,0,pmin,pmax,lmin);
+				break;
+			}
+		}
 	}
-    }
 
     /* Verify pitch multiples for short pitches */
     double_ver(sig_in,pcorr,pitch,pmin,pmax,lmin);
@@ -83,7 +80,6 @@ float double_chk(float sig_in[], float *pcorr, float pitch, float pdouble, int p
 
 
 void double_ver(float sig_in[], float *pcorr, float pitch, int pmin, int pmax, int lmin)
-
 {
 
     int mult;
@@ -95,14 +91,13 @@ void double_ver(float sig_in[], float *pcorr, float pitch, int pmin, int pmax, i
       mult++;
 
     if (mult > 1) {
-	temp_pit = pitch * mult;
-	temp_pit = frac_pch(sig_in,&corr,temp_pit,0,pmin,pmax,lmin);
-    
-	/* use smaller of two correlation values */
-	if (corr < *pcorr)
-	  *pcorr = corr;
+		temp_pit = pitch * mult;
+		temp_pit = frac_pch(sig_in,&corr,temp_pit,0,pmin,pmax,lmin);
+	    
+		/* use smaller of two correlation values */
+		if (corr < *pcorr)
+		  *pcorr = corr;
     }
-
 }
 
 /*                                                                  */
@@ -111,7 +106,6 @@ void double_ver(float sig_in[], float *pcorr, float pitch, int pmin, int pmax, i
 
 float find_pitch(float sig_in[], float *pcorr, int lower, int upper, 
 		 int length)
-
 {
 
     int i,cbegin,ipitch,even_flag;
@@ -127,36 +121,33 @@ float find_pitch(float sig_in[], float *pcorr, int lower, int upper,
     cT_T = v_magsq(&sig_in[cbegin+upper],length);
 
     for (i = upper; i >= lower; i--) {
-	/* calculate normalized crosscorrelation */
-	corr  = v_inner(&sig_in[cbegin],&sig_in[cbegin+i],length);
-	if (corr > 0.01f)
-	  corr = (corr*corr) / (c0_0*cT_T);
+		/* calculate normalized cross correlation */
+		corr  = v_inner(&sig_in[cbegin],&sig_in[cbegin+i],length);
+		if (corr > 0.01f)
+		  corr = (corr*corr) / (c0_0*cT_T);
 
-	/* check if current maximum value */
-	if (corr > maxcorr) {
-	    maxcorr = corr;
-	    ipitch = i;
-	}
+		/* check if current maximum value */
+		if (corr > maxcorr) {
+			maxcorr = corr;
+			ipitch = i;
+		}
 
-	/* update for next iteration */
-	if (even_flag) {
-	    even_flag = 0;
-	    c0_0 += (sig_in[cbegin+length]*sig_in[cbegin+length]);
-	    c0_0 -= (sig_in[cbegin]*sig_in[cbegin]);
-	    cbegin++;
-	}
-	else {
-	    even_flag = 1;
-	    cT_T += (sig_in[cbegin+i-1]*sig_in[cbegin+i-1]);
-	    cT_T -= (sig_in[cbegin+i-1+length]*sig_in[cbegin+i-1+length]);
-	}
-	    
+		/* update for next iteration */
+		if (even_flag) {
+			even_flag = 0;
+			c0_0 += (sig_in[cbegin+length]*sig_in[cbegin+length]);
+			c0_0 -= (sig_in[cbegin]*sig_in[cbegin]);
+			cbegin++;
+		}else {
+			even_flag = 1;
+			cT_T += (sig_in[cbegin+i-1]*sig_in[cbegin+i-1]);
+			cT_T -= (sig_in[cbegin+i-1+length]*sig_in[cbegin+i-1+length]);
+		}	    
     }
 
     /* Return full floating point pitch value and correlation*/
     *pcorr = sqrtf(maxcorr);
     return((float) ipitch);
-
 }
 
 /*
@@ -178,9 +169,7 @@ float find_pitch(float sig_in[], float *pcorr, int lower, int upper,
 
 
 float frac_pch(float sig_in[], float *pcorr, float fpitch, int range, int pmin, int pmax, int lmin)
-
 {
-
     int length,cbegin,lower,upper,ipitch;
     float c0_0,c0_T,c0_T1,cT_T,cT_T1,cT1_T1,c0_Tm1;
     float frac,frac1;
@@ -188,19 +177,19 @@ float frac_pch(float sig_in[], float *pcorr, float fpitch, int range, int pmin, 
 
     /* Perform local integer pitch search for better fpitch estimate */
     if (range > 0) {
-	ipitch = (int) (fpitch + 0.5f);
-	lower = ipitch - range;
-	upper = ipitch + range;
-	if (upper > pmax)
-	  upper = pmax;
-	if (lower < pmin)
-	  lower = pmin;
-	if (lower < 0.75f*ipitch)
-	  lower = (int) (0.75f*ipitch);
-	length = ipitch;
-	if (length < lmin)
-	  length = lmin;
-	fpitch = find_pitch(sig_in,&corr,lower,upper,length);
+		ipitch = (int) (fpitch + 0.5f);
+		lower = ipitch - range;
+		upper = ipitch + range;
+		if (upper > pmax)
+		  upper = pmax;
+		if (lower < pmin)
+		  lower = pmin;
+		if (lower < 0.75f*ipitch)
+		  lower = (int) (0.75f*ipitch);
+		length = ipitch;
+		if (length < lmin)
+		  length = lmin;
+		fpitch = find_pitch(sig_in,&corr,lower,upper,length);
     }
 
     /* Estimate needed crosscorrelations */
@@ -215,10 +204,10 @@ float frac_pch(float sig_in[], float *pcorr, float fpitch, int range, int pmin, 
     c0_T1 = v_inner(&sig_in[cbegin],&sig_in[cbegin+ipitch+1],length);
     c0_Tm1 = v_inner(&sig_in[cbegin],&sig_in[cbegin+ipitch-1],length);
     if (c0_Tm1 > c0_T1) {
-	/* fractional component should be less than 1, so decrement pitch */
-	c0_T1 = c0_T;
-	c0_T = c0_Tm1;
-	ipitch-- ;
+		/* fractional component should be less than 1, so decrement pitch */
+		c0_T1 = c0_T;
+		c0_T = c0_Tm1;
+		ipitch-- ;
     }
     cT_T1 = v_inner(&sig_in[cbegin+ipitch],&sig_in[cbegin+ipitch+1],length);
     c0_0 = v_inner(&sig_in[cbegin],&sig_in[cbegin],length);
@@ -231,17 +220,13 @@ float frac_pch(float sig_in[], float *pcorr, float fpitch, int range, int pmin, 
       frac = (c0_T1*cT_T - c0_T*cT_T1) / denom;
     else
       frac = 0.5f;
-    if (frac > MAXFRAC)
-      frac = MAXFRAC;
-    if (frac < MINFRAC)
-      frac = MINFRAC;
+    if (frac > MAXFRAC)  frac = MAXFRAC;
+    if (frac < MINFRAC)  frac = MINFRAC;
 
     /* Make sure pitch is still within range */
     fpitch = ipitch + frac;
-    if (fpitch > pmax)
-      fpitch = (float) pmax;
-    if (fpitch < pmin)
-      fpitch = (float) pmin;
+    if (fpitch > pmax) fpitch = (float) pmax;
+    if (fpitch < pmin) fpitch = (float) pmin;
     frac = fpitch - ipitch;    
 
     /* Calculate interpolated correlation strength */
@@ -255,7 +240,6 @@ float frac_pch(float sig_in[], float *pcorr, float fpitch, int range, int pmin, 
 
     /* Return full floating point pitch value */
     return(fpitch);
-
 }
 
 /*
@@ -281,15 +265,13 @@ float p_avg_update(float pitch, float pcorr, float pthresh)
 
     /* Strong correlation: update good pitch array */
     if (pcorr > pthresh) {
-	for (i = NUM_GOOD-1; i >= 1; i--)
-	  good_pitch[i] = good_pitch[i-1];
-	good_pitch[0] = pitch;
-    }
-    
-    /* Otherwise decay good pitch array to default value */
-    else {
-	for (i = 0; i < NUM_GOOD; i++)
-	  good_pitch[i] = (PDECAY * good_pitch[i]) +((1.0f - PDECAY)*DEFAULT_PITCH_);
+		for (i = NUM_GOOD-1; i >= 1; i--)
+		  good_pitch[i] = good_pitch[i-1];
+		good_pitch[0] = pitch;
+    }else {
+		/* Otherwise decay good pitch array to default value */
+		for (i = 0; i < NUM_GOOD; i++)
+		  good_pitch[i] = (PDECAY * good_pitch[i]) +((1.0f - PDECAY)*DEFAULT_PITCH_);
     }
     
     /* Pitch_avg = median of pitch values */
@@ -337,56 +319,44 @@ float pitch_ana(float speech[], float resid[], float pitch_est, float pitch_avg,
 		    pitch_est,5,PITCHMIN,PITCHMAX,MINLENGTH);
     
     if (pcorr < 0.6f) {
+		/* If correlation is too low, try speech signal instead */
+		v_equ(&sigbuf[LPF_ORD],&speech[-PITCHMAX],PITCH_FR);
+		temp = frac_pch(&sigbuf[LPF_ORD+(PITCH_FR/2)],&pcorr,
+				pitch_est,0,PITCHMIN,PITCHMAX,MINLENGTH);
 
-	/* If correlation is too low, try speech signal instead */
-	v_equ(&sigbuf[LPF_ORD],&speech[-PITCHMAX],PITCH_FR);
-	temp = frac_pch(&sigbuf[LPF_ORD+(PITCH_FR/2)],&pcorr,
-			pitch_est,0,PITCHMIN,PITCHMAX,MINLENGTH);
-
-	if (pcorr < UVMAX)
-		
-	  /* If correlation still too low, use average pitch */
-	  pitch = pitch_avg;
-
-	else {
-		
-	    /* Else check for pitch doubling (speech thresholds) */
-	    temp2 = PDOUBLE3;
-	    if (temp > LONG_PITCH)
-	      /* longer pitches are more likely to be doubles */
-	      temp2 = PDOUBLE4;
-	    pitch = double_chk(&sigbuf[LPF_ORD+(PITCH_FR/2)],&pcorr,
-				    temp,temp2,PITCHMIN,PITCHMAX,MINLENGTH);
-	}
-    }
-    
-    else {
-
-	/* Else check for pitch doubling (residual thresholds) */
-	temp2 = PDOUBLE1;
-	if (temp > LONG_PITCH)
-	
-	  /* longer pitches are more likely to be doubles */
-	  temp2 = PDOUBLE2;
-
-	pitch = double_chk(&sigbuf[LPF_ORD+(PITCH_FR/2)],&pcorr,
-				temp,temp2,PITCHMIN,PITCHMAX,MINLENGTH);
+		if (pcorr < UVMAX)	
+		  /* If correlation still too low, use average pitch */
+		  pitch = pitch_avg;
+		else {			
+			/* Else check for pitch doubling (speech thresholds) */
+			temp2 = PDOUBLE3;
+			if (temp > LONG_PITCH)
+			  /* longer pitches are more likely to be doubles */
+			  temp2 = PDOUBLE4;
+			pitch = double_chk(&sigbuf[LPF_ORD+(PITCH_FR/2)],&pcorr,
+						temp,temp2,PITCHMIN,PITCHMAX,MINLENGTH);
+		}
+    }else {
+		/* Else check for pitch doubling (residual thresholds) */
+		temp2 = PDOUBLE1;
+		/* longer pitches are more likely to be doubles */
+		if (temp > LONG_PITCH)		
+		  temp2 = PDOUBLE2;
+		pitch = double_chk(&sigbuf[LPF_ORD+(PITCH_FR/2)],&pcorr,
+					temp,temp2,PITCHMIN,PITCHMAX,MINLENGTH);
     }
     
     if (pcorr < UVMAX) {
-	
-	/* If correlation still too low, use average pitch */
-	pitch = pitch_avg;
+		/* If correlation still too low, use average pitch */
+		pitch = pitch_avg;
     }
 	
     /* Return pitch and set correlation strength */
     *pcorr2 = pcorr;
     return(pitch);
-
 }
 
 void pitch_ana_init()
-
 {
     /* Allocate and initialize delay memory */
     v_zap(lpres_del,LPF_ORD);

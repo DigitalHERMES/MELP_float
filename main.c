@@ -60,18 +60,13 @@ typedef unsigned short uint16_t;
 typedef signed short int16_t;
 
 int		mode;
-int		chwordsize;
-int		frameSize;
 int		rate;
 
 /* ========== Static Variables ========== */
 
 char in_name[256], out_name[256];
-// char chbuf[1024];
-// struct melp_param melp_par;
-struct melp_param	melp_par[NF];                 /* melp analysis parameters */
-unsigned int	chbuf[CHSIZE * NF];                     /* channel bit data buffer */
-
+struct melp_param	melp_ana_par;                 /* melp analysis parameters */
+struct melp_param	melp_syn_par;                 /* melp synthesis parameters */
 
 /* ========== Local Private Prototypes ========== */
 
@@ -81,6 +76,49 @@ static void		printHelpMessage(char *argv[]);
 static char *cmd_line[] = {"melp", "-i", "test_in.raw", "-o", "test_out.raw", 0};
 
 extern int main_cmd(int argc, char *argv[]);
+
+#define MAXSIZE 1024
+#define SIGMAX 32767
+typedef short SPEECH;
+SPEECH	int_sp[MAXSIZE]; /*  integer input array	
+/*								*/
+/*	Subroutine READBL: read block of input data		*/
+/*								*/
+int readbl(float input[], FILE *fp_in, int size)
+
+{
+	int i, length;
+
+	length = fread(int_sp,sizeof(SPEECH),size,fp_in);
+	for (i = 0; i < length; i++ )
+		input[i] = (float) int_sp[i];
+	for (i = length; i < size; i++ )
+		input[i] = 0.0f;
+
+	return length;
+}
+/*								*/
+/*	Subroutine WRITEBL: write block of output data		*/
+/*								*/
+
+
+void writebl(float output[], FILE *fp_out, int size)
+
+{
+	int i;
+	float temp;
+
+	for (i = 0; i < size; i++ ) {
+		temp = output[i];
+		/* clamp to +- SIGMAX */
+		if (temp > SIGMAX)	  temp = SIGMAX;
+		if (temp < -SIGMAX)	  temp = -SIGMAX;
+		int_sp[i] = (SPEECH)temp;
+	}
+	fwrite(int_sp,sizeof(SPEECH),size,fp_out);
+}
+
+
 int main()
 {
 	main_cmd(5, cmd_line);
@@ -104,7 +142,6 @@ int main_cmd(int argc, char *argv[])
 {
 	int	length;
 	int frame_count;
-	int i;
 
 	float	speech_in[BLOCK], speech_out[BLOCK];
 	int		eof_reached = FALSE;
@@ -120,16 +157,13 @@ int main_cmd(int argc, char *argv[])
 	}
 	if ((fp_out = fopen(out_name,"wb")) == NULL){
 		fprintf(stderr, "  ERROR: cannot write file %s.\n", out_name);
+		fclose(fp_in);
 		exit(1);
 	}
 
 	/* ====== Initialize MELP analysis and synthesis ====== */
-	frameSize = (int16_t) FRAME;
-	for(i = 0; i < NF; i++){
-		melp_par[i].chptr = &chbuf[i*CHSIZE];
-	}
-	melp_ana_init();
-	melp_syn_init();
+	melp_ana_init(&melp_ana_par);
+	melp_syn_init(&melp_syn_par);
 
 	/* ====== Run MELP coder on input signal ====== */
 	frame_count = 0;
@@ -139,17 +173,17 @@ int main_cmd(int argc, char *argv[])
 		fprintf(stderr, "Frame = %ld\r", frame_count);
 
 		/* Perform MELP analysis */
-		/* read input speech */
-		length = readbl(speech_in, fp_in, frameSize);
-		if (length < frameSize){
-			v_zap(&speech_in[length], (int16_t) (FRAME - length));
+		length = readbl(speech_in, fp_in, FRAME);
+		if (length < FRAME){
+			v_zap(&speech_in[length], FRAME - length);
 			eof_reached = TRUE;
 		}
-		melp_ana(speech_in, melp_par);
-		/* ====== Perform MELP synthesis (skip first frame) ====== */
-		melp_syn(melp_par, speech_out);
-		writebl(speech_out, fp_out, frameSize);
-		frame_count ++;
+		melp_ana(speech_in, &melp_ana_par);
+
+		/* Perform MELP synthesis */
+		melp_syn(&melp_syn_par, speech_out);
+		writebl(speech_out, fp_out, FRAME);
+		frame_count++;
 	}
 
 	fclose(fp_in);
@@ -185,7 +219,6 @@ static void		parseCommandLine(int argc, char *argv[])
 	/* Setting default values. */
 	mode = ANA_SYN;
 	rate = RATE2400;
-    chwordsize = 8;         // this is for packed bitstream
 	in_name[0] = '\0';
 	out_name[0] = '\0';
 

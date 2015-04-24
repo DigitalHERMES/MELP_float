@@ -58,21 +58,10 @@ static float noise_gain = MIN_NOISE;
 static float pulse_del[MIX_ORD],noise_del[MIX_ORD];
 static float lpc_del[LPC_ORD],ase_del[LPC_ORD],tilt_del[TILT_ORD];
 static float disp_del[DISP_ORD];
-
-static msvq_param_t vq_par;  /* MSVQ parameters */
-static int vq_par_num_levels[4];
-static int vq_par_indices[4];
-static int vq_par_num_bits[4];
-
-static msvq_param_t fs_vq_par;  /* Fourier series VQ parameters */
-static int fs_vq_par_num_levels[1];
-static int fs_vq_par_indices[1];
-static int fs_vq_par_num_bits[1];
-
 static float w_fs_inv[NUM_HARM];
 
 /* these can be saved or recomputed */
-static float prev_pcof[MIX_ORD+1],prev_ncof[MIX_ORD+1];
+static float prev_pcof[MIX_ORD+1], prev_ncof[MIX_ORD+1];
 static float prev_tilt;
 
 // Temporary static vars
@@ -105,16 +94,7 @@ void melp_syn(struct melp_param *par, float sp_out[])
 		else 
 		  v_equ(&sp_out[0],&sigsave[0],syn_begin);
     }
-    
-    erase = 0; /* no erasures yet */
-    
-    /* Update MSVQ information */
-    par->msvq_stages = vq_par.num_stages;
-    par->msvq_bits = vq_par.num_bits;
-    par->msvq_levels = vq_par.num_levels;
-    par->msvq_index = vq_par.indices;
-    par->fsvq_index = fs_vq_par.indices;
-    
+        
     /*	Read and decode channel input buffer	*/
     erase = melp_chn_read(par);
 
@@ -128,8 +108,8 @@ void melp_syn(struct melp_param *par, float sp_out[])
 		}
 	}else {
 		/* Decode line spectrum frequencies	*/
-		vq_msd2(msvq_cb,&par->lsf[1],(float*)NULL,(float*)NULL,par->msvq_index,
-			par->msvq_levels,par->msvq_stages,LPC_ORD,0);
+		vq_msd2(msvq_cb,&par->lsf[1],(float*)NULL,(float*)NULL,par->msvq_par.indices,
+			par->msvq_par.levels,par->msvq_par.num_stages,LPC_ORD,0);
 		i = FS_LEVELS;
 		if (par->uv_flag)
 		{
@@ -138,7 +118,7 @@ void melp_syn(struct melp_param *par, float sp_out[])
 		{	
 			/* Decode Fourier magnitudes */
 			vq_msd2(fsvq_cb,par->fs_mag,(float*)NULL,(float*)NULL,
-				par->fsvq_index,&i,1,NUM_HARM,0);
+				par->fsvq_par.indices,&i,1,NUM_HARM,0);
 		}
 
 		/* Decode gain terms with uniform log quantizer	*/
@@ -369,7 +349,7 @@ void melp_syn(struct melp_param *par, float sp_out[])
  *
  */
 
-void melp_syn_init()
+void melp_syn_init(melp_param_t *par)
 {
     int i;
 	
@@ -403,60 +383,42 @@ void melp_syn_init()
     /* 
      * Initialize multi-stage vector quantization (read codebook) 
      */
-	 
-    vq_par.num_best = MSVQ_M;
-    vq_par.num_stages = 4;
-    vq_par.dimension = 10;
+	par->msvq_par.num_best = MSVQ_M;
+    par->msvq_par.num_stages = 4;
+    par->msvq_par.dimension = 10;
 
-    /* 
-     * Allocate memory for number of levels per stage and indices
-     * and for number of bits per stage 
-     */
- 
-    vq_par.num_levels = vq_par_num_levels;	// MEM_ALLOC(MALLOC,vq_par.num_levels,vq_par.num_stages,int);
-    vq_par.indices = vq_par_indices;		// MEM_ALLOC(MALLOC,vq_par.indices,vq_par.num_stages,int);
-    vq_par.num_bits = vq_par_num_bits;		// MEM_ALLOC(MALLOC,vq_par.num_bits,vq_par.num_stages,int);
-
+    par->msvq_par.levels[0] = 128;
+    par->msvq_par.levels[1] = 64;
+    par->msvq_par.levels[2] = 64;
+    par->msvq_par.levels[3] = 64;
 	
-    vq_par.num_levels[0] = 128;
-    vq_par.num_levels[1] = 64;
-    vq_par.num_levels[2] = 64;
-    vq_par.num_levels[3] = 64;
+    par->msvq_par.bits[0] = 7;
+    par->msvq_par.bits[1] = 6;
+    par->msvq_par.bits[2] = 6;
+    par->msvq_par.bits[3] = 6;
 	
-    vq_par.num_bits[0] = 7;
-    vq_par.num_bits[1] = 6;
-    vq_par.num_bits[2] = 6;
-    vq_par.num_bits[3] = 6;
-	
-    vq_par.cb = msvq_cb;
+    par->msvq_par.cb = msvq_cb;
 	
     /* Scale codebook to 0 to 1 */
     if (fsvq_weighted == 0)
-      v_scale(vq_par.cb,(2.0f/FSAMP),3200);
+      v_scale(par->msvq_par.cb,(2.0f/FSAMP),3200);
 
     /* 
      * Initialize Fourier magnitude vector quantization (read codebook) 
      */
 	 
-    fs_vq_par.num_best = 1;
-    fs_vq_par.num_stages = 1;
-    fs_vq_par.dimension = NUM_HARM;
+    par->fsvq_par.num_best = 1;
+    par->fsvq_par.num_stages = 1;
+    par->fsvq_par.dimension = NUM_HARM;
 
     /* 
      * Allocate memory for number of levels per stage and indices
      * and for number of bits per stage 
      */
- 
-    fs_vq_par.num_levels = fs_vq_par_num_levels;		// MEM_ALLOC(MALLOC,fs_vq_par.num_levels,fs_vq_par.num_stages,int);
-    fs_vq_par.indices = fs_vq_par_indices;				// MEM_ALLOC(MALLOC,fs_vq_par.indices,fs_vq_par.num_stages,int);
-    fs_vq_par.num_bits = fs_vq_par_num_bits;			// MEM_ALLOC(MALLOC,fs_vq_par.num_bits,fs_vq_par.num_stages,int);
-
 	
-    fs_vq_par.num_levels[0] = FS_LEVELS;
-	
-    fs_vq_par.num_bits[0] = FS_BITS;
-	
-    fs_vq_par.cb = fsvq_cb;
+    par->fsvq_par.levels[0] = FS_LEVELS;
+    par->fsvq_par.bits[0] = FS_BITS;
+    par->fsvq_par.cb = fsvq_cb;
 	
     /* 
      * Initialize fixed MSE weighting and inverse of weighting 
@@ -468,16 +430,13 @@ void melp_syn_init()
 
     /* 
      * Pre-weight codebook (assume single stage only) 
-     */
-	
+     */	
     if (fsvq_weighted == 0)
-      {
-	  fsvq_weighted = 1;
-	  for (i = 0; i < fs_vq_par.num_levels[0]; i++)
-	    window(&fs_vq_par.cb[i*NUM_HARM],w_fs,&fs_vq_par.cb[i*NUM_HARM],
-		   NUM_HARM);
-      }
-	
+	{
+		fsvq_weighted = 1;
+		for (i = 0; i < par->fsvq_par.levels[0]; i++)
+		window(&par->fsvq_par.cb[i*NUM_HARM],w_fs,&par->fsvq_par.cb[i*NUM_HARM], NUM_HARM);
+	}	
 }
 
 

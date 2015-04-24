@@ -27,6 +27,7 @@ Returns: void
 
 #include <stdio.h>
 #include <math.h>
+#include <string.h>
 #include "melp.h"
 #include "vq.h"
 #include "melp_sub.h"
@@ -39,8 +40,6 @@ Returns: void
 /* Define bit buffer */
 static unsigned int bit_buffer[NUM_CH_BITS];
 static struct melp_param param_buffer;
-static int msvq_indices[4];
-static int fsvq_indices[1];
 
 #if (ORIGINAL_BIT_ORDER)
 /* Original linear order */
@@ -81,14 +80,10 @@ void melp_chn_write(struct melp_param *par)
 	param_buffer.gain_index[0] =  par->gain_index[0];
 	param_buffer.pitch_index =  par->pitch_index;
 	param_buffer.jit_index =  par->jit_index;
-	param_buffer.bpvc_index=  par->bpvc_index;
+	param_buffer.bpvc_index =  par->bpvc_index;
 
-	param_buffer.msvq_index = msvq_indices;
-	for (i = 0; i < par->msvq_stages; i++) { 
-		param_buffer.msvq_index[i] = par->msvq_index[i];
-	}
-	param_buffer.fsvq_index = fsvq_indices;
-	param_buffer.fsvq_index[0] =  par->fsvq_index[0];
+	memcpy(param_buffer.msvq_par.indices, par->msvq_par.indices, sizeof(param_buffer.msvq_par.indices));
+	memcpy(param_buffer.fsvq_par.indices, par->fsvq_par.indices, sizeof(param_buffer.fsvq_par.indices));
 	return;
 
 	/* FEC: code additional information in redundant indices */
@@ -108,10 +103,10 @@ void melp_chn_write(struct melp_param *par)
 	pack_code(par->jit_index,&bit_ptr,&bit_cntr,1,1);
 	pack_code(par->bpvc_index,&bit_ptr,&bit_cntr,NUM_BANDS-1,1);
 
-	for (i = 0; i < par->msvq_stages; i++) { 
-		pack_code(par->msvq_index[i],&bit_ptr,&bit_cntr,par->msvq_bits[i],1);
+	for (i = 0; i < par->msvq_par.num_stages; i++) { 
+		pack_code(par->msvq_par.indices[i],&bit_ptr,&bit_cntr,par->msvq_par.bits[i],1);
 	}
-	pack_code(par->fsvq_index[0],&bit_ptr,&bit_cntr, FS_BITS,1);
+	pack_code(par->fsvq_par.indices[0],&bit_ptr,&bit_cntr, FS_BITS,1);
 }
 
 int melp_chn_read(struct melp_param *par)
@@ -129,11 +124,8 @@ int melp_chn_read(struct melp_param *par)
 	par->pitch_index = param_buffer.pitch_index;
 	par->jit_index = param_buffer.jit_index;
 	par->bpvc_index = param_buffer.bpvc_index;
-
-	for (i = 0; i < par->msvq_stages; i++) {
-		par->msvq_index[i] = param_buffer.msvq_index[i];
-	}
-	par->fsvq_index[0]  = param_buffer.fsvq_index[0];
+	memcpy(par->msvq_par.indices, param_buffer.msvq_par.indices, sizeof(param_buffer.msvq_par));
+	memcpy(par->fsvq_par.indices, param_buffer.fsvq_par.indices, sizeof(param_buffer.fsvq_par));
 
 	/* Clear unvoiced flag */
 	par->uv_flag = 0;
@@ -147,20 +139,16 @@ int melp_chn_read(struct melp_param *par)
 	unpack_code(&bit_ptr,&bit_cntr,&par->pitch_index,PIT_BITS,1,0);
 
 	unpack_code(&bit_ptr,&bit_cntr,&par->jit_index,1,1,0);
-	unpack_code(&bit_ptr,&bit_cntr,&par->bpvc_index,
-		NUM_BANDS-1,1,0);
+	unpack_code(&bit_ptr,&bit_cntr,&par->bpvc_index, NUM_BANDS-1,1,0);
 
-	for (i = 0; i < par->msvq_stages; i++) {
-		unpack_code(&bit_ptr,&bit_cntr,&par->msvq_index[i],
-			par->msvq_bits[i],1,0);
+	for (i = 0; i < par->msvq_par.num_stages; i++) {
+		unpack_code(&bit_ptr,&bit_cntr,&par->msvq_par.indices[i],par->msvq_par.bits[i],1,0);
 	}
-	unpack_code(&bit_ptr,&bit_cntr,&par->fsvq_index[0], FS_BITS,1,0);
+	unpack_code(&bit_ptr,&bit_cntr,&par->fsvq_par.indices[0], FS_BITS,1,0);
 
 	/* Clear unvoiced flag */
 	par->uv_flag = 0;
-
 	// erase = fec_decode(par,erase);
-
 	/* Return erase flag */
 	return(erase);
 }

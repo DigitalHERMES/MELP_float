@@ -20,8 +20,6 @@ Group (phone 972 480 7442).
 /*                                                                  */
 
 /*  compiler flags */
-// #define PRINT 1             /* warning message flag */
-
 #define ANA_SYN			0
 #define ANALYSIS		1
 #define SYNTHESIS		2
@@ -143,7 +141,18 @@ extern float disp_cof[DISP_ORD+1];
 
 
 /* Structure definitions */
-struct melp_param {         /* MELP parameters */
+/* Structure definition */
+typedef struct msvq_param {         /* Multistage VQ parameters */
+	int num_stages;
+	int dimension;
+	int num_best;
+	int bits[4];
+	int levels[4];
+	int indices[4];
+	float *cb;
+}msvq_param_t;
+
+typedef struct melp_param {         /* MELP parameters */
     float pitch;
     float lsf[LPC_ORD+1];
     float gain[NUM_GAINFR];
@@ -154,23 +163,18 @@ struct melp_param {         /* MELP parameters */
     int jit_index;
     int bpvc_index;
     int gain_index[NUM_GAINFR];
-    // unsigned int *chptr;
-    int chbit;
     int uv_flag;
     float fs_mag[NUM_HARM];
-    int *fsvq_index;
-    int *msvq_index;
-    int msvq_stages;
-    int *msvq_bits;
-    int *msvq_levels;
-};
+	msvq_param_t msvq_par;		/* MS VQ parameters */
+	msvq_param_t fsvq_par;		/* Fourier series VQ parameters */
+}melp_param_t;
 
 /* External function definitions */
 #ifdef _WIN32
 __declspec(dllexport) void __cdecl melp_ana(float sp_in[],struct melp_param *par);
 __declspec(dllexport) void __cdecl melp_syn(struct melp_param *par, float sp_out[]);
-__declspec(dllexport) void __cdecl melp_ana_init();
-__declspec(dllexport) void __cdecl melp_syn_init();
+__declspec(dllexport) void __cdecl melp_ana_init(struct melp_param *par);
+__declspec(dllexport) void __cdecl melp_syn_init(struct melp_param *par);
 __declspec(dllexport) int  __cdecl melp_chn_read(struct melp_param *par);
 __declspec(dllexport) void __cdecl melp_chn_write(struct melp_param *par);
 
@@ -179,8 +183,8 @@ __declspec(dllexport) int  __cdecl fec_decode(struct melp_param *par, int erase)
 #else
 void  melp_ana(float sp_in[],struct melp_param *par);
 void  melp_syn(struct melp_param *par, float sp_out[]);
-void  melp_ana_init(void);
-void  melp_syn_init(void);
+void  melp_ana_init(struct melp_param *par);
+void  melp_syn_init(struct melp_param *par);
 int   melp_chn_read(struct melp_param *par);
 void  melp_chn_write(struct melp_param *par);
 

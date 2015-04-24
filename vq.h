@@ -29,34 +29,24 @@ float vq_ms4(float *cb, float *u, float *u_est, int *levels, int ma, int stages,
 float *vq_msd2(float *cb, float *u, float *u_est, float *a, int *indices, 
        int *levels, int stages, int p, int conversion);
 float *vq_lspw(float *w,float *lsp,float *a,int p);
-
-/* Structure definition */
-typedef struct msvq_param {         /* Multistage VQ parameters */
-    int num_stages;
-    int *num_levels;
-    int *num_bits;
-    int dimension;
-    int num_best;
-    int *indices;
-    char *fname_cb;
-    float *cb;
-}msvq_param_t;
+float vq_enc(float *cb, float *u, int levels, int p, float *u_hat, int *indices);
+void vq_fsw(float *w_fs, int num_harm, float pitch);
 
 /* External function definitions */
 
 #define msvq_enc(u,w,u_hat,par)\
-    vq_ms4(par.cb,u,(float*)NULL,par.num_levels,\
+    vq_ms4(par.cb,u,(float*)NULL,par.levels,\
 	  par.num_best,par.num_stages,par.dimension,w,u_hat,\
 	  par.indices,MSVQ_MAXCNT)
 
 #define fsvq_enc(u,u_hat,par)\
-    vq_enc(par.cb,u,*(par.num_levels),\
+    vq_enc(par.cb,u,par.levels[0],\
 	  par.dimension,u_hat,\
 	  par.indices)
 
-float vq_enc(float *cb, float *u, int levels, int p, float *u_hat, int *indices);
 
-void vq_fsw(float *w_fs, int num_harm, float pitch);
+
+
 
 
 #endif

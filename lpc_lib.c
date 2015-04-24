@@ -109,8 +109,6 @@ float lpc_aejw(float *a,float w,int p)
 
     Systems and Info. Science Lab
     Copyright (c) 1995 by Texas Instruments, Inc.  All rights reserved.
-
-
 */
 
 int lpc_bwex(float *a, float *aw, float gamma, int p)
@@ -128,7 +126,7 @@ int lpc_bwex(float *a, float *aw, float gamma, int p)
     Aliases: lpc_clamp
     Description:
         Ensure that all LSPs are ordered and separated
-        by at least delta.  The algorithm isn't guarenteed
+        by at least delta.  The algorithm isn't guaranteed
         to work, so it prints an error message when it fails
         to sort the LSPs properly.
     Inputs:
@@ -174,7 +172,6 @@ int lpc_clmp(float *w, float delta, int p)
     /* ensure minimum separation */
     if (!unsorted) 
     {
-
         for(j=0; j < MAX_LOOPS; j++)
         {
             for(i=1; i < p; i++)
@@ -185,43 +182,29 @@ int lpc_clmp(float *w, float delta, int p)
                     if (i==1 && (w[i] < delta))
                     {
                         step1 = w[i]/2.0f;
-	            }
-                    else if (i > 1)
+					}else if (i > 1)
                     {
                         if ((tmp = w[i] - w[i-1]) < delta)
                             step1 = 0;
                         else if (tmp < 2*delta)
                             step1 = (tmp-delta)/2.0f;
-		    }
+					}
                     if (i==(p-1) && (w[i+1] > (1.0f-delta)))
                     {
                         step2 = (1-w[i+1])/2.0f;
-		    }
-                    else if (i < (p-1))
+					}else if (i < (p-1))
                     {
                         if ((tmp = w[i+2] - w[i+1]) < delta)
                             step2 = 0;
                         else if (tmp < 2*delta)
                             step2 = (tmp-delta)/2.0f;
-		    }
+					}
                     w[i] -= step1;
-		    w[i+1] += step2;
-	        }
-	    }
+					w[i+1] += step2;
+				}
+			}
         }
     }
-
-    /* Debug: check if the minimum separation rule was met */
-#ifdef PRINT		
-    for(j=1; j < p; j++)
-      if ((w[j+1]-w[j]) < 0.99f*delta)
-          (void)fprintf(stderr,"%s: LSPs not separated by enough (line %d)\n",
-              __FILE__,__LINE__);
-
-    if (unsorted)
-        (void)fprintf(stderr,"%s: LSPs still unsorted (line %d)\n",
-		      __FILE__,__LINE__);
-#endif
     return(0);
 }
 
@@ -326,8 +309,6 @@ static int   lsp_roots(float *w,float **c,int p2);
    Reference:  Kabal and Ramachandran
 
 */
-
-
 
 int lpc_pred2lsp(float *a,float *w,int p)
 {
@@ -444,8 +425,8 @@ int lpc_lsp2pred(float *w,float *a,int p)
         f[0][i] += f[0][i-1];
         f[1][i] -= f[1][i-1];
 
-        a[i] = 0.50f*(f[0][i]+f[1][i]);
-        a[p+1-i] = 0.50f*(f[0][i]-f[1][i]);
+        a[i] = 0.5f * (f[0][i]+f[1][i]);
+        a[p+1-i] = 0.5f * (f[0][i]-f[1][i]);
     }
 
     // MEM_2FREE(FREE,f);
@@ -480,9 +461,7 @@ int lpc_refl2pred(float *k,float *a,int p)
     }
 
     // MEM_FREE(FREE,a1);
-
     return(0);
-
 } /* LPC_REFL2PRED */
 
 /* G - compute the value of the Chebychev series
@@ -497,7 +476,7 @@ static float lsp_g(float x,float *c,int p2)
 
     for(i=p2; i > 0; i--)
     {
-        b[0] = 2.0f*x*b[1] - b[2] + c[i];
+        b[0] = 2.0f * x * b[1] - b[2] + c[i];
         b[2] = b[1];
         b[1] = b[0];
     }
@@ -559,9 +538,6 @@ static int lsp_roots(float *w,float **c,int p2)
         }
         g0 = g1;
     }
-#ifdef PRINT		
-    (void)fprintf(stderr,"\n Error(lsp_roots): LSPs Not All Found\n");
-#endif
     return(1);
 } /* LSP_ROOTS */
 
@@ -604,5 +580,4 @@ int lpc_syn(float *x,float *y,float *a,int p,int n)
     }
     return(0);
 }
-
 

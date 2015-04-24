@@ -25,12 +25,9 @@ Group (phone 972 480 7442).
 #include	<stdio.h>
 #include	<stdlib.h>
 #include	<math.h>
-#include "dsp_sub.h"
-#include "spbstd.h"
-#include "mat.h"
-
-typedef short SPEECH;
-// #define PRINT 1
+#include	"dsp_sub.h"
+#include	"spbstd.h"
+#include	"mat.h"
 
 /*								*/
 /*	Subroutine autocorr: calculate autocorrelations         */
@@ -43,7 +40,6 @@ void autocorr(float input[], float r[], int order, int npts)
       r[i] = v_inner(&input[0],&input[i],(npts-i));
     if (r[0] < 1.0F)
       r[0] = 1.0F;
-
 }
 
 /*								*/
@@ -77,7 +73,6 @@ void fill(float output[], float fillval, int npts)
 
   for (i = 0; i < npts; i++ )
     output[i] = fillval;
-
 }
 
 /*								*/
@@ -109,24 +104,21 @@ float median(float input[], int npts)
     /* sort data in temporary array */
     v_equ(sorted,input,npts);
     for (i = 1; i < npts; i++) {
+		/* for each data point */
+		for (j = 0; j < i; j++) {
+			/* find location in current sorted list */
+			if (sorted[i] < sorted[j])
+			  break;
+		}
 
-	/* for each data point */
-	for (j = 0; j < i; j++) {
-	    /* find location in current sorted list */
-	    if (sorted[i] < sorted[j])
-	      break;
-	}
-
-	/* insert new value */
-	loc = j;
-	insert_val = sorted[i];
-	for (j = i; j > loc; j--)
-	  sorted[j] = sorted[j-1];
-	sorted[loc] = insert_val;
+		/* insert new value */
+		loc = j;
+		insert_val = sorted[i];
+		for (j = i; j > loc; j--)
+		  sorted[j] = sorted[j-1];
+		sorted[loc] = insert_val;
     }
-
     return(sorted[npts/2]);
-
 }
 
 /*								*/
@@ -211,8 +203,8 @@ void polflt(float input[], float coeff[], float output[], int order,int npts)
 void quant_u(float *p_data, int *p_index, float qmin, float qmax, int nlev)
 
 {
-register int	i, j;
-register float	step, qbnd, *p_in;
+	register int	i, j;
+	register float	step, qbnd, *p_in;
 
 	p_in = p_data;
 
@@ -232,7 +224,6 @@ register float	step, qbnd, *p_in;
 	/*  Quantize input to correct level		*/
 	*p_in = qmin + (i * step);
 	*p_index = i;
-
 }
 
 /*								*/
@@ -241,7 +232,7 @@ register float	step, qbnd, *p_in;
 /*								*/
 void quant_u_dec(int index, float *p_data,float qmin, float qmax, int nlev)
 {
-register float	step;
+	register float	step;
 
 	/*  Define symmetrical quantizer stepsize	*/
 	step = (qmax - qmin) / (nlev - 1);
@@ -259,46 +250,11 @@ void	rand_num(float output[], float amplitude, int npts)
     int i;
 
     for (i = 0; i < npts; i++ ) {
-
-	/* use system random number generator from -1 to +1 */
-#ifdef RAND_MAX
-	/* ANSI C environment */
-	output[i] = (amplitude*2.0f) * ((float) rand()*(1.0f/RAND_MAX) - 0.5f);
-#else
-	/* assume Sun OS4 */
-	output[i] = amplitude * (float) (((random() >> 16)/32767. - .5)*2);
-#endif
-
+		/* use system random number generator from -1 to +1 */
+		output[i] = (amplitude*2.0f) * ((float) rand()*(1.0f/RAND_MAX) - 0.5f);
     }
 }
 
-/*								*/
-/*	Subroutine READBL: read block of input data		*/
-/*								*/
-#define MAXSIZE 1024
-int readbl(float input[], FILE *fp_in, int size)
-
-{
-    int i, length;
-    SPEECH	int_sp[MAXSIZE]; /*  integer input array		*/
-
-#ifdef PRINT
-    if (size > MAXSIZE) {
-	printf("****ERROR: read block size too large **** \n");
-	exit(1);
-    }
-#endif
-    
-    length = fread(int_sp,sizeof(SPEECH),size,fp_in);
-    for (i = 0; i < length; i++ )
-      input[i] = int_sp[i];
-    for (i = length; i < size; i++ )
-      input[i] = 0.0;
-
-    return length;
-
-}
-#undef MAXSIZE
 
 /*								*/
 /*	Subroutine UNPACK_CODE: Unpack bit code from channel.	*/
@@ -330,7 +286,6 @@ int unpack_code(unsigned int **p_ch_beg, int *p_ch_bit, int *p_code, int numbits
 	/*  Save updated bit counter	*/
 	*p_ch_bit = ch_bit;
 
-
     /* Catch erasure in new word if read */
     if (ch_bit != 0)
       ret_code |= *ch_word & ERASE_MASK;    
@@ -348,38 +303,6 @@ void window(float input[], float win_cof[], float output[], int npts)
     for (i = 0; i < npts; i++ )
       output[i] = win_cof[i]*input[i];
 }
-
-/*								*/
-/*	Subroutine WRITEBL: write block of output data		*/
-/*								*/
-#define MAXSIZE 1024
-#define SIGMAX 32767
-
-void writebl(float output[], FILE *fp_out, int size)
-
-{
-    int i;
-    SPEECH	int_sp[MAXSIZE]; /*  integer input array		*/
-    float temp;
-
-#ifdef PRINT
-    if (size > MAXSIZE) {
-	printf("****ERROR: write block size too large **** \n");
-	exit(1);
-    }
-#endif
-    
-    for (i = 0; i < size; i++ ) {
-		temp = output[i];
-		/* clamp to +- SIGMAX */
-		if (temp > SIGMAX)	  temp = SIGMAX;
-		if (temp < -SIGMAX)	  temp = -SIGMAX;
-		int_sp[i] = (SPEECH)temp;
-    }
-    fwrite(int_sp,sizeof(SPEECH),size,fp_out);
-}
-
-#undef MAXSIZE
 
 /*								*/
 /*	Subroutine zerflt: all zero (FIR) filter.		*/

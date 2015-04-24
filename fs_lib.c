@@ -29,9 +29,6 @@ Group (phone 972 480 7442).
 #include "mat.h"
 #include "fs.h"
 
-/*  compiler constants */
-// #define PRINT 1
-
 /*								*/
 /*	Subroutine FIND_HARM: find Fourier coefficients using	*/
 /*	FFT of input signal divided into pitch dependent bins.	*/
@@ -167,7 +164,6 @@ void fft(float *datam1,int nn,int isign)
 /*	input array.						*/
 /*								*/
 int 	findmax(float input[], int npts)
-
 {
 int register	i, maxloc;
 float register  maxval, *p_in;
