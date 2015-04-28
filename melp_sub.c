@@ -86,7 +86,6 @@ void bpvc_ana(float speech[], float fpitch[], float bpvc[], float pitch[])
     for (j = 1; j < NUM_PITCHES; j++) {
 		temp = frac_pch(&sigbuf[FIRST_CNTR],
 				&pcorr,fpitch[j],5,PITCHMIN,PITCHMAX,MINLENGTH);
-		
 		/* choose largest correlation value */
 		if (pcorr > bpvc[0]) {
 			*pitch = temp;
@@ -130,22 +129,15 @@ void bpvc_ana(float speech[], float fpitch[], float bpvc[], float pitch[])
 void bpvc_ana_init()
 {
 	int i;
-    /* Allocate memory */
-    //  MEM_2ALLOC(malloc,bpfdel,NUM_BANDS,BPF_ORD,float);
+
 	for(i = 0; i < NUM_BANDS; i++)
 	{
 		bpfdel[i] = &bpfdel_data[BPF_ORD * i];
 		envdel[i] = &envdel_data[ENV_ORD * i];
 	}
     v_zap(&(bpfdel[0][0]),NUM_BANDS*BPF_ORD);
-
-    //  MEM_2ALLOC(malloc,envdel,NUM_BANDS,ENV_ORD,float);
     v_zap(&(envdel[0][0]),NUM_BANDS*ENV_ORD);
-    //  MEM_ALLOC(malloc,envdel2,NUM_BANDS,float);
     v_zap(envdel2,NUM_BANDS);
-
-    /* Allocate scratch buffer */
-    //  MEM_ALLOC(malloc,sigbuf,PIT_BEG+PIT_P_FR,float);
 }
 
 /*
@@ -185,18 +177,11 @@ static float dc_den[DC_ORD+1] = {
 
 void dc_rmv(float sigin[], float sigout[], float dcdel[], int frame)
 {
-
-    /* Allocate scratch buffer */
-    // MEM_ALLOC(malloc,sigbuf,frame+DC_ORD,float);
-
     /* Remove DC from input speech */
     v_equ(sigbuf1,dcdel,DC_ORD);
     polflt(sigin,dc_den,&sigbuf1[DC_ORD],DC_ORD,frame);
     v_equ(dcdel,&sigbuf1[frame],DC_ORD);
     zerflt(&sigbuf1[DC_ORD],dc_num,sigout,DC_ORD,frame);
-
-    /* Free scratch buffer */
-    // MEM_FREE(free,sigbuf);
 }
 
 /*
@@ -253,7 +238,6 @@ float gain_ana(float sigin[], float pitch, int minlength, int maxlength)
 */
 
 float lin_int_bnd(float x,float xmin,float xmax,float ymin,float ymax)
-
 {
     float y;
 			
@@ -282,7 +266,6 @@ float lin_int_bnd(float x,float xmin,float xmax,float ymin,float ymax)
 */
 
 void noise_est(float gain,float *noise_gain,float up,float down,float min,float max)
-
 {
     /* Update noise_gain */
     if (gain > *noise_gain+up) *noise_gain = *noise_gain+up;
@@ -310,8 +293,7 @@ void noise_est(float gain,float *noise_gain,float up,float down,float min,float 
     Copyright (c) 1995 by Texas Instruments, Inc.  All rights reserved.
 */
 
-void noise_sup(float *gain,float noise_gain,float max_noise,float max_atten,float nfact)
-
+void noise_sup(float *gain,float noise_gain,float max_noise,float max_atten, float nfact)
 {
     float gain_lev,suppress;
 			
@@ -386,7 +368,6 @@ int q_bpvc(float *bpvc,int *bpvc_index,float bpthresh,int num_bands)
 }
 
 void q_bpvc_dec(float *bpvc,int *bpvc_index,int uv_flag,int num_bands)
-
 {
     int j;
 
@@ -474,8 +455,7 @@ void q_gain(float *gain,int *gain_index,float gn_qlo,float gn_qup,int gn_qlev)
     }
 
     /* Update previous gain for next time */
-    prev_gain = gain[1];
-    
+    prev_gain = gain[1];  
 }
 
 void q_gain_dec(float *gain,int *gain_index,float gn_qlo,float gn_qup,int gn_qlev)
@@ -489,48 +469,40 @@ void q_gain_dec(float *gain,int *gain_index,float gn_qlo,float gn_qup,int gn_qle
     quant_u_dec(gain_index[1],&gain[1],gn_qlo,gn_qup,gn_qlev);
     
     if (gain_index[0] == 0) {
+		/* interpolation bit code for intermediate gain */
+		if (fabs(gain[1] - prev_gain) > GAIN_INT_DB) {
+			/* Invalid received data (bit error) */
+			if (prev_gain_err == 0) {
+				/* First time: don't allow gain excursion */
+				gain[1] = prev_gain;
+			}
+			prev_gain_err = 1;
+		}
+		else 
+			prev_gain_err = 0;
 
-	/* interpolation bit code for intermediate gain */
-	if (fabs(gain[1] - prev_gain) > GAIN_INT_DB) {
-	    /* Invalid received data (bit error) */
-	    if (prev_gain_err == 0) {
-		/* First time: don't allow gain excursion */
-		gain[1] = prev_gain;
-	    }
-	    prev_gain_err = 1;
-	}
-	else 
-	  prev_gain_err = 0;
-
-	/* Use interpolated gain value */
-	gain[0] = 0.5f*(gain[1]+prev_gain);
-    }
-
-    else {
-
-	/* Decode 7-bit quantizer for first gain term */
-	prev_gain_err = 0;
-	gain_index[0]--;
-	if (prev_gain < gain[1]) {
-	    temp = prev_gain;
-	    temp2 = gain[1];
-	}
-	else {
-	    temp = gain[1];
-	    temp2 = prev_gain;
-	}
-	temp -= 6.0f;
-	temp2 += 6.0f;
-	if (temp < gn_qlo)
-	  temp = gn_qlo;
-	if (temp2 > gn_qup)
-	  temp2 = gn_qup;
-	quant_u_dec(gain_index[0],&gain[0],temp,temp2,7);
+		/* Use interpolated gain value */
+		gain[0] = 0.5f*(gain[1]+prev_gain);
+    } else {
+		/* Decode 7-bit quantizer for first gain term */
+		prev_gain_err = 0;
+		gain_index[0]--;
+		if (prev_gain < gain[1]) {
+			temp = prev_gain;
+			temp2 = gain[1];
+		}else {
+			temp = gain[1];
+			temp2 = prev_gain;
+		}
+		temp -= 6.0f;
+		temp2 += 6.0f;
+		if (temp < gn_qlo)	temp = gn_qlo;
+		if (temp2 > gn_qup)	temp2 = gn_qup;
+		quant_u_dec(gain_index[0],&gain[0],temp,temp2,7);
     }
 
     /* Update previous gain for next time */
-    prev_gain = gain[1];
-    
+    prev_gain = gain[1];    
 }
 
 /*
@@ -552,7 +524,6 @@ void q_gain_dec(float *gain,int *gain_index,float gn_qlo,float gn_qup,int gn_qle
 */
 
 void scale_adj(float *speech, float gain, float *prev_scale, int length, int scale_over)
-
 {
     int i;
     float scale;

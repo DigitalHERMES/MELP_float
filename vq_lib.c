@@ -107,11 +107,6 @@ float vq_ms4(float *cb, float *u, float *u_est, int *levels, int ma, int stages,
     /* allocate memory for the current node and
        parent node (thus, the factors of two everywhere)
        The parents and current nodes are allocated contiguously */
-    // MEM_ALLOC(MALLOC,indices,2*ma*stages,int);
-    // MEM_ALLOC(MALLOC,errors,2*ma*p,float);
-    // MEM_ALLOC(MALLOC,uhatw,p,float);
-    // MEM_ALLOC(MALLOC,d,2*ma,float);
-    // MEM_ALLOC(MALLOC,parents,2*ma,int);
 
     /* initialize memory */
     v_zap_int(indices,2*stages*ma);
@@ -131,7 +126,6 @@ float vq_ms4(float *cb, float *u, float *u_est, int *levels, int ma, int stages,
     n_parents = &parents[ma];
 
     /* u_tmp is the input vector (i.e. if u_est is non-null, it is subtracted off) */
-    // MEM_ALLOC(MALLOC,u_tmp,p+1,float);
     (void)v_equ(u_tmp,u,p);
     if (u_est)
     {
@@ -295,14 +289,7 @@ float vq_ms4(float *cb, float *u, float *u_est, int *levels, int ma, int stages,
             cb_currentstage += levels[s]*p;
         }
     }
-
-    // MEM_FREE(FREE,parents);
-    // MEM_FREE(FREE,d);
-    // MEM_FREE(FREE,uhatw);
-    // MEM_FREE(FREE,errors);
-    // MEM_FREE(FREE,indices);
-
-    return(d_opt);
+	return(d_opt);
 }
 
 /*

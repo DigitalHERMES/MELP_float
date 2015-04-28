@@ -123,7 +123,7 @@ int fec_decode(struct melp_param *par, int erase)
 	par->uv_flag = (par->pitch_index == UV_PIND);
 	erase |= (par->pitch_index == INVAL_PIND);
     if (!par->uv_flag && !erase )
-				par->pitch_index-=2; /* Subtract to acct. for reserved pitch codes.*/
+		par->pitch_index-=2; /* Subtract to acct. for reserved pitch codes.*/
 
     if (par->uv_flag && !erase)
 /*
@@ -191,7 +191,7 @@ int binprod_int(int *x, int *y, int n)
     register int i;
     
     for (i=0; i<n; i++)
-	val ^= *x++ & *y++;
+		val ^= *x++ & *y++;
     
     return(val);
 }
@@ -210,10 +210,10 @@ int *vgetbits(int *y, int x, int p, int n)
     int *retval=y;
 
     if (n < 0 || p < n-1)
-	return(NULL);
+		return(NULL);
     
     for (y+=n-1,x>>=p-n+1; y>=retval; y--,x>>=1)
-	*y = x & lsb;
+		*y = x & lsb;
 
     return(retval);
 }
@@ -259,14 +259,14 @@ void sbc_enc(int x[], int n, int k, int *pmat)
 {
     register int i;
     for (i=k; i<n; i++,pmat+=k)
-	x[i] = binprod_int(x,pmat,k);
+		x[i] = binprod_int(x,pmat,k);
 }
 
 int sbc_dec(int x[], int n, int k, int *pmat, int syntab[])
 {
     int bep=syntab[sbc_syn(x,n,k,pmat)];
     if (bep > -1)
-	x[bep] ^= 0x1;
+		x[bep] ^= 0x1;
     return(bep);
 }
 
@@ -275,7 +275,7 @@ int sbc_syn(int x[], int n, int k, int *pmat)
     int retval=0;
     register int i,j;
     for (i=k,j=n-k-1; i<n; i++,j--,pmat+=k)
-	retval += (x[i] ^ binprod_int(x,pmat,k)) << j;
+		retval += (x[i] ^ binprod_int(x,pmat,k)) << j;
     return(retval);
 }
 

@@ -43,7 +43,7 @@ Group (phone 972 480 7442).
 #define ENV_ORD 2           /* bandpass envelope filter order */
 #define MIX_ORD 32          /* mixed excitation filtering order */
 #define DISP_ORD 64         /* pulse dispersion filter order */
-#define DEFAULT_PITCH_ 50.0F  /* default pitch value */
+#define DEFAULT_PITCH_ 50.0f /* default pitch value */
 #define UV_PITCH 50         /* unvoiced pitch value */
 #define VMIN 0.8F            /* minimum strongly voiced correlation */
 #define VJIT 0.5F            /* jitter threshold for correlations */
@@ -139,7 +139,6 @@ extern int fsvq_weighted;
 #define PITCH_FR  ((2*PITCHMAX)+1)
 
 
-/* Structure definitions */
 /* Structure definition */
 typedef struct msvq_param {         /* Multistage VQ parameters */
 	int num_stages;

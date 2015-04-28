@@ -28,6 +28,13 @@ Group (phone 972 480 7442).
 #include "spbstd.h"
 #include "mat.h"
 #include "fs.h"
+#ifndef _MSC_VER
+#define ARM_MATH_CM4
+#endif
+#define __TARGET_FPU_VFP 1
+#define __FPU_PRESENT 1
+#include "arm_math.h"
+#include "arm_const_structs.h"
 
 /*								*/
 /*	Subroutine FIND_HARM: find Fourier coefficients using	*/
@@ -37,12 +44,12 @@ Group (phone 972 480 7442).
 #define DFTMAX		160
 
 /* Memory definition		*/
-static float find_hbuf[2*FFTLENGTH];
-static float mag[FFTLENGTH];
+static float	find_hbuf[2*FFTLENGTH];
+static float	mag[FFTLENGTH];
+static float	idftc[DFTMAX];
 
 void find_harm(float input[], float fsmag[], float pitch, int num_harm, 
 	       int length)
-
 {
     int	i, j, k, iwidth, i2;
     float temp, avg, fwidth;
@@ -56,7 +63,7 @@ void find_harm(float input[], float fsmag[], float pitch, int num_harm,
     /* Calculate FFT of complex signal in scratch buffer	*/
     v_zap(find_hbuf,2*FFTLENGTH);
     for (i = 0; i < 2*length; i+=2)
-	find_hbuf[i] = input[i/2];
+		find_hbuf[i] = input[i/2];
     fft(find_hbuf,FFTLENGTH,-1);
 	
     /* Calculate magnitude squared of coefficients		*/
@@ -67,25 +74,23 @@ void find_harm(float input[], float fsmag[], float pitch, int num_harm,
     /* Implement pitch dependent staircase function		*/
     fwidth = FFTLENGTH / pitch;	/* Harmonic bin width	*/
     iwidth = (int) fwidth;
-    if (iwidth < 2)
-	iwidth = 2;
+    if (iwidth < 2) iwidth = 2;
     i2 = iwidth/2;
     avg = 0.0;
     if (num_harm > 0.25f*pitch)
-	num_harm = (int)(0.25f*pitch);
+		num_harm = (int)(0.25f*pitch);
     for (k = 0; k < num_harm; k++) {
-		i = (int)(((k+1)*fwidth) - i2 + 0.5f); /* Stfart at peak-i2 */
+		i = (int)(((k+1)*fwidth) - i2 + 0.5f); /* Start at peak-i2 */
 		j = i + findmax(&mag[i],iwidth);
 		fsmag[k] = mag[j];
 		avg += mag[j];
     }
 
     /* Normalize Fourier series values to average magnitude */
-    temp = num_harm/(avg+ .0001f);
+    temp = num_harm/(avg + .0001f);
     for (i = 0; i < num_harm; i++) {
-	fsmag[i] = sqrtf(temp*fsmag[i]);
+		fsmag[i] = sqrtf(temp*fsmag[i]);
     }
-
 }
 
 /*	Subroutine FFT: Fast Fourier Transform 		*/
@@ -96,8 +101,8 @@ void find_harm(float input[], float fsmag[], float pitch, int num_harm,
 * nn MUST be an integer power of two.  This is not checked    *
 * The real part of the number should be in the zeroeth        *
 * of data , and the imaginary part should be in the next      *
-* element.  Hence all the real parts should have even indeces *
-* and the imaginary parts, odd indeces.			      *
+* element.  Hence all the real parts should have even indices *
+* and the imaginary parts, odd indices.			      *
 
 * Data is passed in an array starting in position 0, but the  *
 * code is copied from Fortran so uses an internal pointer     *
@@ -106,57 +111,9 @@ void find_harm(float input[], float fsmag[], float pitch, int num_harm,
 * This code uses e+jwt sign convention, so isign should be    *
 * reversed for e-jwt.                                         *
 ***************************************************************/
-#define	SWAP(a,b) tempr = (a);(a) = (b); (b) = tempr
-
 void fft(float *datam1,int nn,int isign)
-
 {
-	int	n,mmax,m,j,istep,i;
-	float	wtemp,wr,wpr,wpi,wi,theta;
-	float register	tempr,tempi;
-	float	*data;
-
-	/*  Use pointer indexed from 1 instead of 0	*/
-	data = &datam1[-1];
-
-	n = nn << 1;
-	j = 1;
-	for( i = 1; i < n; i+=2 ) {
-	  if ( j > i) {
-		SWAP(data[j],data[i]);
-		SWAP(data[j+1],data[i+1]);
-	  }
-	  m = n >> 1;
-	  while ( m >= 2 && j > m ) {
-		j -= m;
-		m >>= 1;
-	  }
-	  j += m;
-	}
-	mmax = 2;
-	while ( n > mmax) {
-	  istep = 2 * mmax;
-	  theta = 2 * M_PI/(isign * mmax);
-	  wtemp = sinf(0.5f * theta);
-	  wpr   = -2.0f * wtemp * wtemp;
-	  wpi   = sinf(theta);
-	  wr = 1.0f;
-	  wi = 0.0f;
-	  for ( m = 1; m < mmax;m+=2) {
-	    for ( i = m; i <= n; i += istep) {
-   	      	j = i + mmax;
-			tempr = wr * data[j] - wi * data[j+1];
-	      	tempi = wr * data[j+1] + wi * data[j];
-	   		data[j] = data[i] - tempr;
-			data[j+1] = data[i+1] - tempi;
-			data[i] += tempr;
-			data[i+1] += tempi;
-	    }
-	    wr = (wtemp=wr)*wpr-wi*wpi+wr;
-	    wi = wi*wpr+wtemp*wpi+wi;
-	  }
-	  mmax = istep;
-	}
+	arm_cfft_f32(&arm_cfft_sR_f32_len512, datam1, 0, 1);
 }
 
 /*								*/
@@ -165,19 +122,11 @@ void fft(float *datam1,int nn,int isign)
 /*								*/
 int 	findmax(float input[], int npts)
 {
-int register	i, maxloc;
-float register  maxval, *p_in;
+	unsigned int 	maxloc;
+	float   maxval;
 
-	p_in = &input[0];
-	maxloc = 0;
-	maxval = input[maxloc];
-	for (i = 1; i < npts; i++ ) {
-		if (*(++p_in) > maxval) {
-			maxloc = i;
-			maxval = *p_in;
-		}
-	}
-	return(maxloc);
+	arm_max_f32(input, npts, &maxval, &maxloc);
+	return (maxloc);
 }
 
 /*								*/
@@ -187,10 +136,6 @@ float register  maxval, *p_in;
 /*	using symmetry between lower and upper DFT		*/
 /*	coefficients.						*/
 /*								*/
-
-/* Memory definition	*/
-static float	idftc[DFTMAX];
-
 void	idft_real(float real[], float signal[], int length)
 
 {

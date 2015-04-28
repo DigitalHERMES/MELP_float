@@ -79,13 +79,14 @@ extern int main_cmd(int argc, char *argv[]);
 
 #define MAXSIZE 1024
 #define SIGMAX 32767
-typedef short SPEECH;
-SPEECH	int_sp[MAXSIZE]; /*  integer input array	
+typedef int16_t SPEECH;
+
+SPEECH	int_sp[MAXSIZE]; /*  integer input array	*/
+
 /*								*/
 /*	Subroutine READBL: read block of input data		*/
 /*								*/
 int readbl(float input[], FILE *fp_in, int size)
-
 {
 	int i, length;
 
@@ -97,11 +98,10 @@ int readbl(float input[], FILE *fp_in, int size)
 
 	return length;
 }
+
 /*								*/
 /*	Subroutine WRITEBL: write block of output data		*/
 /*								*/
-
-
 void writebl(float output[], FILE *fp_out, int size)
 
 {
@@ -175,7 +175,6 @@ int main_cmd(int argc, char *argv[])
 		/* Perform MELP analysis */
 		length = readbl(speech_in, fp_in, FRAME);
 		if (length < FRAME){
-			v_zap(&speech_in[length], FRAME - length);
 			eof_reached = TRUE;
 		}
 		melp_ana(speech_in, &melp_ana_par);

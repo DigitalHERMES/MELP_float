@@ -168,6 +168,10 @@
 			ReferencedProjectIdentifier="{7AC02F9B-DFE5-473D-8C16-89206F8191CE}"
 			RelativePathToProject=".\Melp_lib.vcproj"
 		/>
+		<ProjectReference
+			ReferencedProjectIdentifier="{0D3C61E1-A36D-42C1-B2A0-A4A0E685ED3A}"
+			RelativePathToProject="..\..\..\..\DSP_library\Build\Win32\DSP_library\DSP_library.vcproj"
+		/>
 	</References>
 	<Files>
 		<Filter

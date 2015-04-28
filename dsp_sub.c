@@ -29,6 +29,13 @@ Group (phone 972 480 7442).
 #include	"spbstd.h"
 #include	"mat.h"
 
+#ifndef _MSC_VER
+#define ARM_MATH_CM4
+#endif
+#define __TARGET_FPU_VFP 1
+#define __FPU_PRESENT 1
+#include "arm_math.h"
+
 /*								*/
 /*	Subroutine autocorr: calculate autocorrelations         */
 /*								*/
@@ -37,9 +44,10 @@ void autocorr(float input[], float r[], int order, int npts)
     int i;
 
     for (i = 0; i <= order; i++ )
+	{
       r[i] = v_inner(&input[0],&input[i],(npts-i));
-    if (r[0] < 1.0F)
-      r[0] = 1.0F;
+	}
+	if (r[0] < 1.0F) r[0] = 1.0F;
 }
 
 /*								*/
@@ -51,7 +59,6 @@ void autocorr(float input[], float r[], int order, int npts)
 #define C1 1.9266F
 
 void envelope(float input[], float prev_in, float output[], int npts)
-
 {
     int i;
     float curr_abs, prev_abs;
@@ -79,7 +86,6 @@ void fill(float output[], float fillval, int npts)
 /*	Subroutine interp_array: interpolate array              */
 /*                                                              */
 void interp_array(float prev[],float curr[],float out[],float ifact,int size)
-
 {
     int i;
     float ifact2;
@@ -125,7 +131,6 @@ float median(float input[], int npts)
 /*	Subroutine PACK_CODE: Pack bit code into channel.	*/
 /*								*/
 void pack_code(int code,unsigned int **p_ch_beg,int *p_ch_bit, int numbits, int wsize)
-
 {
     int	i,ch_bit;
     unsigned int *ch_word;
@@ -157,7 +162,6 @@ void pack_code(int code,unsigned int **p_ch_beg,int *p_ch_bit, int numbits, int 
 /*      signal using ratio of L2 to L1 norms.                   */
 /*								*/
 float peakiness(float input[], int npts)
-
 {
     int i;
     float sum_abs, peak_fact;
@@ -182,7 +186,6 @@ float peakiness(float input[], int npts)
 /*      The output array can overlay the input.                 */
 /*								*/
 void polflt(float input[], float coeff[], float output[], int order,int npts)
-
 {
     int i,j;
     float accum;
@@ -201,14 +204,13 @@ void polflt(float input[], float coeff[], float output[], int order,int npts)
 /*	input range.						*/
 /*								*/
 void quant_u(float *p_data, int *p_index, float qmin, float qmax, int nlev)
-
 {
 	register int	i, j;
 	register float	step, qbnd, *p_in;
 
 	p_in = p_data;
 
-	/*  Define symmetrical quantizer stepsize	*/
+	/*  Define symmetrical quantizer step-size	*/
 	step = (qmax - qmin) / (nlev - 1);
 
 	/*  Search quantizer boundaries			*/
@@ -298,18 +300,14 @@ int unpack_code(unsigned int **p_ch_beg, int *p_ch_bit, int *p_code, int numbits
 /*								*/
 void window(float input[], float win_cof[], float output[], int npts)
 {
-    int i;
-
-    for (i = 0; i < npts; i++ )
-      output[i] = win_cof[i]*input[i];
+	arm_mult_f32(input, win_cof, output, npts);
 }
 
 /*								*/
 /*	Subroutine zerflt: all zero (FIR) filter.		*/
 /*      Note: the output array can overlay the input.           */
 /*								*/
-void zerflt(float input[], float coeff[], float output[], int order,int npts)
-
+void zerflt(float input[], float coeff[], float output[], int order, int npts)
 {
     int i,j;
     float accum;

@@ -62,8 +62,8 @@ float lpc_aejw(float *a,float w,int p)
             ...[a(p-1)+e(-jw)a(p)]]]]
     */
 
-    cs = (float)cosf(w);
-    sn = -(float)sinf(w);
+    cs = cosf(w);
+    sn = -sinf(w);
 
     c_re = cs*a[p];
     c_im = sn*a[p];
@@ -251,9 +251,6 @@ float lpc_schur(float *r, float *a, int p)
     int i,j;
     float temp,alphap;
 
-    // MEM_ALLOC(MALLOC,y1,p+2,float);
-    // MEM_ALLOC(MALLOC,y2,p+2,float);
-
     k[1] = -r[1]/r[0];
     alphap = r[0]*(1-SQR(k[1]));
 
@@ -283,8 +280,6 @@ float lpc_schur(float *r, float *a, int p)
         (void)lpc_refl2pred(k,a,p);
     }
 
-    // MEM_FREE(FREE,y2);
-    // MEM_FREE(FREE,y1);
     return(alphap);
 }
 
@@ -317,8 +312,6 @@ int lpc_pred2lsp(float *a,float *w,int p)
     p2 = p/2;
 	c[0] = c0;
 	c[1] = c1;
-
-    // MEM_2ALLOC(MALLOC,c,2,p2+1,float);
     c0[p2] = c1[p2] = 1.0;
 
     for(i=1; i <= p2; i++)
@@ -334,7 +327,6 @@ int lpc_pred2lsp(float *a,float *w,int p)
     /* ensure minimum separation and sort */
     (void)lpc_clamp(w,lsp_delta,p);
 
-    // MEM_2FREE(FREE,c);
     return(i);
 } /* LPC_PRED2LSP */
 
@@ -353,9 +345,6 @@ int lpc_pred2refl(float *a,float *k,int p)
     float e;
     int   i,j;
 
-    // MEM_ALLOC(MALLOC,b,p+1,float);
-    // MEM_ALLOC(MALLOC,b1,p+1,float);
-
     /* equate temporary variables (b = a) */
     for(i=1; i <= p; i++)
         b[i] = a[i];
@@ -370,9 +359,6 @@ int lpc_pred2refl(float *a,float *k,int p)
         for(j=1; j < i; j++)
             b[j] = (b1[j] - k[i]*b1[i-j])/e;
     }
-
-    // MEM_FREE(FREE,b1);
-    // MEM_FREE(FREE,b);
     return(0);
 }
 /* LPC_LSP2PRED
@@ -391,11 +377,11 @@ int lpc_lsp2pred(float *w,float *a,int p)
     int i,j,k,p2;
     float c[2];
 
+
     /* ensure minimum separation and sort */
     (void)lpc_clamp(w,lsp_delta,p);
 
     p2 = p/2;
-    // MEM_2ALLOC(MALLOC,f,2,p2+1,float);
 	f[0] = f0;
 	f[1] = f1;
     f[0][0] = f[1][0] = 1.0;
@@ -429,7 +415,6 @@ int lpc_lsp2pred(float *w,float *a,int p)
         a[p+1-i] = 0.5f * (f[0][i]-f[1][i]);
     }
 
-    // MEM_2FREE(FREE,f);
     return(0);
 }
 
@@ -448,8 +433,6 @@ int lpc_refl2pred(float *k,float *a,int p)
 {
     int   i,j;
 
-    // MEM_ALLOC(MALLOC,a1,p+1,float);
-
     for(i=1; i <= p; i++)
     {
         /* refl to a recursion */
@@ -459,8 +442,6 @@ int lpc_refl2pred(float *k,float *a,int p)
         for(j=1; j < i; j++)
             a[j] = a1[j] + k[i]*a1[i-j];
     }
-
-    // MEM_FREE(FREE,a1);
     return(0);
 } /* LPC_REFL2PRED */
 

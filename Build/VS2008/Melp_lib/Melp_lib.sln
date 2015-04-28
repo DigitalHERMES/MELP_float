@@ -5,6 +5,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Melp_lib", "Melp_lib.vcproj
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Test_vec", "..\Test_vec\Test_vec.vcproj", "{A809BEB1-E032-4A42-A9E2-651B11CA91C4}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "DSP_library", "..\..\..\..\DSP_library\Build\Win32\DSP_library\DSP_library.vcproj", "{0D3C61E1-A36D-42C1-B2A0-A4A0E685ED3A}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
@@ -19,6 +21,10 @@ Global
 		{A809BEB1-E032-4A42-A9E2-651B11CA91C4}.Debug|Win32.Build.0 = Debug|Win32
 		{A809BEB1-E032-4A42-A9E2-651B11CA91C4}.Release|Win32.ActiveCfg = Release|Win32
 		{A809BEB1-E032-4A42-A9E2-651B11CA91C4}.Release|Win32.Build.0 = Release|Win32
+		{0D3C61E1-A36D-42C1-B2A0-A4A0E685ED3A}.Debug|Win32.ActiveCfg = Debug|Win32
+		{0D3C61E1-A36D-42C1-B2A0-A4A0E685ED3A}.Debug|Win32.Build.0 = Debug|Win32
+		{0D3C61E1-A36D-42C1-B2A0-A4A0E685ED3A}.Release|Win32.ActiveCfg = Release|Win32
+		{0D3C61E1-A36D-42C1-B2A0-A4A0E685ED3A}.Release|Win32.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

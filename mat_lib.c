@@ -24,93 +24,73 @@ Group (phone 972 480 7442).
 #include "spbstd.h"
 #include "mat.h"
 
+#ifndef _MSC_VER
+#define ARM_MATH_CM4
+#endif
+#define __TARGET_FPU_VFP 1
+#define __FPU_PRESENT 1
+#include "arm_math.h"
+
 /* V_ADD- vector addition */
 float *v_add(float *v1,float *v2,int n)
 {
-    int i;
-
-    for(i=0; i < n; i++)
-        v1[i] += v2[i];
-    return(v1);
+	arm_add_f32(v1, v2, v1, n);
+	return v1;
 }
 
 /* V_EQU- vector equate */
 float *v_equ(float *v1,float *v2,int n)
 {
-    int i;
-
-    for(i=0; i < n; i++)
-        v1[i] = v2[i];
-    return(v1);
+	arm_copy_f32(v2, v1, n);
+	return v1;
 }
 int *v_equ_int(int *v1,int *v2,int n)
 {
-    int i;
-
-    for(i=0; i < n; i++)
-        v1[i] = v2[i];
-    return(v1);
+	arm_copy_q31(v2, v1, n);
+	return v1;
 }
 
 /* V_INNER- inner product */
 float v_inner(float *v1,float *v2,int n)
 {
-    int i;
     float innerprod;
-
-    for(i=0,innerprod=0.0; i < n; i++)
-        innerprod += v1[i] * v2[i];
-    return(innerprod);
+	arm_dot_prod_f32(v1, v2, n, &innerprod);
+	return innerprod;
 }
 
 /* v_magsq - sum of squares */
-
 float v_magsq(float *v,int n)
 {
-    int i;
     float magsq;
 
-    for(i=0,magsq=0.0; i < n; i++)
-        magsq += v[i] * v[i];
-    return(magsq);
+	arm_power_f32(v, n, &magsq);
+	return magsq;
 } /* V_MAGSQ */
 
 /* V_SCALE- vector scale */
 float *v_scale(float *v,float scale,int n)
 {
-    int i;
-
-    for(i=0; i < n; i++)
-        v[i] *= scale;
-    return(v);
+	arm_scale_f32(v, scale, v, n);
+	return (v);
 }
 
 /* V_SUB- vector difference */
 float *v_sub(float *v1,float *v2,int n)
 {
-    int i;
-
-    for(i=0; i < n; i++)
-        v1[i] -= v2[i];
-    return(v1);
+	arm_sub_f32(v1, v2, v1, n);
+	return v1;
 }
 
 /* v_zap - clear vector */
 
 float *v_zap(float *v,int n)
 {
-    int i;
-
-    for(i=0; i < n; i++)
-        v[i] = 0.0;
-    return(v);
+	arm_fill_f32(0.0f, v, n);
+	return v;
 } /* V_ZAP */
 
 int *v_zap_int(int *v,int n)
 {
-    int i;
-
-    for(i=0; i < n; i++)
-        v[i] = 0;
-    return(v);
+	arm_fill_q31(0, v, n);
+	return v;
 } /* V_ZAP */
