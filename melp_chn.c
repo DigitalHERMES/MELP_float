@@ -38,12 +38,12 @@ Returns: void
 #define ORIGINAL_BIT_ORDER 0  /* flag to use bit order of original version */
 
 /* Define bit buffer */
-static unsigned int bit_buffer[NUM_CH_BITS];
+static unsigned int bit_buffer[NUM_CH_BITS] CCMRAM;
 static struct melp_param param_buffer;
 
 #if (ORIGINAL_BIT_ORDER)
 /* Original linear order */
-static int bit_order[NUM_CH_BITS] = {
+static int bit_order[NUM_CH_BITS] RODATA = {
 	0,  1,  2,  3,  4,  5,
 	6,  7,  8,  9,  10, 11,
 	12, 13, 14, 15, 16, 17, 
@@ -55,7 +55,7 @@ static int bit_order[NUM_CH_BITS] = {
 	48, 49, 50, 51, 52, 53};
 #else
 /* Order based on priority of bits */
-static int bit_order[NUM_CH_BITS] = {
+static int bit_order[NUM_CH_BITS] RODATA = {
 	0,  17, 9,  28, 34, 3, 
 	4,  39, 1,  2,  13, 38,
 	14, 10, 11, 40, 15, 21,

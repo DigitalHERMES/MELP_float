@@ -40,16 +40,17 @@ Group (phone 972 480 7442).
 #include "dsp_sub.h"
 
 /* memory definitions */
-static float sigbuf[SIG_LENGTH];
-static float speech[IN_BEG+FRAME];
-static float dcdel[DC_ORD];
-static float lpfsp_del[LPF_ORD];
+static float sigbuf[SIG_LENGTH]		CCMRAM;
+static float speech[IN_BEG+FRAME]	CCMRAM;
+static float dcdel[DC_ORD]			CCMRAM;
+static float lpfsp_del[LPF_ORD]		CCMRAM;
 static float pitch_avg;
-static float fpitch[2];
+static float fpitch[2]				CCMRAM;
 
-static float w_fs[NUM_HARM];
-static float r[LPC_ORD+1], lpc[LPC_ORD+1];
-static float weights[LPC_ORD];
+static float w_fs[NUM_HARM]			CCMRAM;
+static float r[LPC_ORD+1]			CCMRAM, 
+			 lpc[LPC_ORD+1]			CCMRAM;
+static float weights[LPC_ORD]		CCMRAM;
 	
 void melp_ana(float sp_in[],struct melp_param *par)
 {
@@ -164,7 +165,7 @@ void melp_ana(float sp_in[],struct melp_param *par)
 			  NUM_BANDS);
     
     /*	Calculate Fourier coefficients of residual signal from quantized LPC */
-    fill(par->fs_mag,1.0,NUM_HARM);
+    v_fill(par->fs_mag,1.0,NUM_HARM);
     if (par->bpvc[0] > bpthresh) {
 		lpc_lsp2pred(par->lsf,lpc,LPC_ORD);
 		zerflt(&speech[(FRAME_END-(LPC_FRAME/2))],lpc,sigbuf,
@@ -192,8 +193,6 @@ void melp_ana(float sp_in[],struct melp_param *par)
 /* 
  * melp_ana_init: perform initialization 
  */
-
-
 void melp_ana_init(melp_param_t *par)
 {
     int j;
@@ -204,7 +203,7 @@ void melp_ana_init(melp_param_t *par)
 
     v_zap(speech,IN_BEG+FRAME);
     pitch_avg=DEFAULT_PITCH_;
-    fill(fpitch,DEFAULT_PITCH_,2);
+    v_fill(fpitch,DEFAULT_PITCH_,2);
     v_zap(lpfsp_del,LPF_ORD);
 	
     /* Initialize multi-stage vector quantization (read codebook) */

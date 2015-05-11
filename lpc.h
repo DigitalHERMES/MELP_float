@@ -23,9 +23,6 @@ Group (phone 972 480 7442).
 /* bandwidth expansion function */
 int lpc_bw_expand(float *a, float *aw, float gamma, int p);
 
-/* lpc synthesis filter */
-int lpc_synthesis(float *x,float *y,float *a,int p,int n);
-
 /* sort LSPs and ensure minimum separation */
 int lpc_clamp(float *w, float delta, int p);
 

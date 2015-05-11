@@ -30,16 +30,15 @@ Group (phone 972 480 7442).
 #include "dsp_sub.h"
 #include "pit.h"
 
+/* Static data */
+static float lpres_del[LPF_ORD]			CCMRAM;
+static float sigbuf[LPF_ORD+PITCH_FR]	CCMRAM;
+static float good_pitch[NUM_GOOD]		CCMRAM;
+
 /*                                                                  */
 /*  double_chk.c: check for pitch doubling                          */
 /*  and also verify pitch multiple for short pitches.               */
 /*                                                                  */
-
-/* Static data */
-static float lpres_del[LPF_ORD];
-static float sigbuf[LPF_ORD+PITCH_FR];
-
-
 float double_chk(float sig_in[], float *pcorr, float pitch, float pdouble, int pmin, int pmax, int lmin)
 {
     int mult;
@@ -77,8 +76,6 @@ float double_chk(float sig_in[], float *pcorr, float pitch, float pdouble, int p
 /*                                                                  */
 /*  double_ver.c: verify pitch multiple for short pitches.          */
 /*                                                                  */
-
-
 void double_ver(float sig_in[], float *pcorr, float pitch, int pmin, int pmax, int lmin)
 {
 
@@ -146,7 +143,7 @@ float find_pitch(float sig_in[], float *pcorr, int lower, int upper,
     }
 
     /* Return full floating point pitch value and correlation*/
-    *pcorr = sqrtf(maxcorr);
+    *pcorr = arm_sqrt(maxcorr);
     return((float) ipitch);
 }
 
@@ -194,11 +191,9 @@ float frac_pch(float sig_in[], float *pcorr, float fpitch, int range, int pmin, 
 
     /* Estimate needed crosscorrelations */
     ipitch = (int) (fpitch + 0.5f);
-    if (ipitch >= pmax)
-      ipitch = pmax - 1;
+    if (ipitch >= pmax)  ipitch = pmax - 1;
     length = ipitch;
-    if (length < lmin)
-      length = lmin;
+    if (length < lmin)   length = lmin;
     cbegin = - ((length+ipitch)/2);
     c0_T = v_inner(&sig_in[cbegin],&sig_in[cbegin+ipitch],length);
     c0_T1 = v_inner(&sig_in[cbegin],&sig_in[cbegin+ipitch+1],length);
@@ -232,7 +227,7 @@ float frac_pch(float sig_in[], float *pcorr, float fpitch, int range, int pmin, 
     /* Calculate interpolated correlation strength */
     frac1 = 1.0f - frac;
     denom = c0_0*(frac1*frac1*cT_T + 2*frac*frac1*cT_T1 + frac*frac*cT1_T1);
-    denom = sqrtf(denom);
+    denom = arm_sqrt(denom);
     if (fabs(denom) > 0.01f)
       *pcorr = (frac1*c0_T + frac*c0_T1) / denom;
     else
@@ -253,10 +248,6 @@ float frac_pch(float sig_in[], float *pcorr, float fpitch, int range, int pmin, 
 
     Copyright (c) 1995 by Texas Instruments, Inc.  All rights reserved.
 */
-
-/* Static data */
-static float good_pitch[NUM_GOOD];
-
 float p_avg_update(float pitch, float pcorr, float pthresh)
 {
     int i;
@@ -282,7 +273,7 @@ float p_avg_update(float pitch, float pcorr, float pthresh)
 void p_avg_init()
 {
     /* Allocate and initialize good pitch array */
-    fill(good_pitch,DEFAULT_PITCH_,NUM_GOOD);
+    v_fill(good_pitch,DEFAULT_PITCH_,NUM_GOOD);
 }
 
 /*

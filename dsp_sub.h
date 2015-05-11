@@ -20,18 +20,19 @@ Group (phone 972 480 7442).
   
 */
 
+
+
 /* External function definitions */
 void autocorr(float input[], float r[], int order, int npts);
 void envelope(float input[], float prev_in, float output[], int npts);
-void fill(float output[], float fillval, int npts);
 void interp_array(float prev[],float curr[],float out[],float ifact,int size);
 float median(float input[], int npts);
 float peakiness(float input[], int npts);
-void polflt(float input[], float coeff[], float output[], int order,int npts);
 void quant_u(float *p_data, int *p_index, float qmin, float qmax, int nlev);
 void quant_u_dec(int index, float *p_data,float qmin, float qmax, int nlev);
 void rand_num(float output[],float amplitude, int npts);
-void window(float input[], float win_cof[], float output[], int npts);
+
+void polflt(float input[], float coeff[], float output[], int order,int npts);
 void zerflt(float input[], float coeff[], float output[], int order,int npts);
 
 void  pack_code(int code,unsigned int **p_ch_beg,int *p_ch_bit,int numbits,int size);

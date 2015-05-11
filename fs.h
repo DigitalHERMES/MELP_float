@@ -23,5 +23,4 @@ Group (phone 972 480 7442).
 
 void fft(float *datam1,int nn,int isign);
 void find_harm(float input[], float mag[],float pitch,int num_harm,int length);
-int findmax(float input[], int npts);
 void idft_real(float real[], float signal[], int length);

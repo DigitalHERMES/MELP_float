@@ -44,34 +44,41 @@ Group (phone 972 480 7442).
 
 
 /* temporary memory */
-static float sigbuf[BEGIN+PITCHMAX];
-static float sig2[BEGIN+PITCHMAX];
-static float fs_real[PITCHMAX];
+static float sigbuf[BEGIN+PITCHMAX]	CCMRAM;
+static float sig2[BEGIN+PITCHMAX]	CCMRAM;
+static float fs_real[PITCHMAX]		CCMRAM;
 
 /* permanent memory */ 
 static int firstcall = 1; /* Just used for noise gain init */
-static float sigsave[2*PITCHMAX];
+static float sigsave[2*PITCHMAX]	CCMRAM;
 static struct melp_param prev_par;
 static int syn_begin;
 static float prev_scale;
 static float noise_gain = MIN_NOISE;
-static float pulse_del[MIX_ORD],noise_del[MIX_ORD];
-static float lpc_del[LPC_ORD],ase_del[LPC_ORD],tilt_del[TILT_ORD];
-static float disp_del[DISP_ORD];
+static float pulse_del[MIX_ORD]		CCMRAM,
+			 noise_del[MIX_ORD]		CCMRAM;
+static float lpc_del[LPC_ORD]		CCMRAM,
+			 ase_del[LPC_ORD]		CCMRAM,
+			 tilt_del[TILT_ORD]		CCMRAM;
+static float disp_del[DISP_ORD]		CCMRAM;
 
 /* these can be saved or recomputed */
-static float prev_pcof[MIX_ORD+1], prev_ncof[MIX_ORD+1];
+static float prev_pcof[MIX_ORD+1]	CCMRAM,
+			 prev_ncof[MIX_ORD+1]	CCMRAM;
 static float prev_tilt;
 
 // Temporary static vars
-static float tilt_cof[TILT_ORD+1];
-static float lsf[LPC_ORD+1];
-static float lpc[LPC_ORD+1];
-static float ase_num[LPC_ORD+1],ase_den[LPC_ORD+1];
-static float curr_pcof[MIX_ORD+1],curr_ncof[MIX_ORD+1];
-static float pulse_cof[MIX_ORD+1],noise_cof[MIX_ORD+1];
-static float w_fs[NUM_HARM];
-static float w_fs_inv[NUM_HARM];
+static float tilt_cof[TILT_ORD+1]	CCMRAM;
+static float lsf[LPC_ORD+1]			CCMRAM;
+static float lpc[LPC_ORD+1]			CCMRAM;
+static float ase_num[LPC_ORD+1]		CCMRAM,
+			 ase_den[LPC_ORD+1]		CCMRAM;
+static float curr_pcof[MIX_ORD+1]	CCMRAM,
+			 curr_ncof[MIX_ORD+1]	CCMRAM;
+static float pulse_cof[MIX_ORD+1]	CCMRAM,
+			 noise_cof[MIX_ORD+1]	CCMRAM;
+static float w_fs[NUM_HARM]			CCMRAM;
+static float w_fs_inv[NUM_HARM]		CCMRAM;
 
 void melp_syn(struct melp_param *par, float sp_out[])
 {
@@ -113,7 +120,7 @@ void melp_syn(struct melp_param *par, float sp_out[])
 		i = FS_LEVELS;
 		if (par->uv_flag)
 		{
-			fill(par->fs_mag,1.0F,NUM_HARM);
+			v_fill(par->fs_mag,1.0F,NUM_HARM);
 		}else
 		{	
 			/* Decode Fourier magnitudes */
@@ -242,10 +249,10 @@ void melp_syn(struct melp_param *par, float sp_out[])
 		
 		/* interpolate pitch and pulse gain */
 		pitch = intfact*par->pitch + (1.0f-intfact)*prev_par.pitch;
-		pulse_gain = SYN_GAIN*sqrtf(pitch);
+		pulse_gain = SYN_GAIN*arm_sqrt(pitch);
 		
 		/* interpolate pulse and noise coefficients */
-		temp = sqrtf(ifact);
+		temp = arm_sqrt(ifact);
 		interp_array(prev_pcof,curr_pcof,pulse_cof,temp,MIX_ORD+1);
 		interp_array(prev_ncof,curr_ncof,noise_cof,temp,MIX_ORD+1);
 		
@@ -262,7 +269,7 @@ void melp_syn(struct melp_param *par, float sp_out[])
 		if (length > PITCHMAX)  length = PITCHMAX;
 		
 		/* Use inverse DFT for pulse excitation */
-		fill(fs_real,1.0f,length);
+		v_fill(fs_real,1.0f,length);
 		fs_real[0] = 0.0f;
 		interp_array(prev_par.fs_mag,par->fs_mag,&fs_real[1],intfact, NUM_HARM);
 		idft_real(fs_real,&sigbuf[BEGIN],length);
@@ -294,7 +301,7 @@ void melp_syn(struct melp_param *par, float sp_out[])
 		
 		/* Adaptive spectral enhancement */
 		v_equ(&sigbuf[BEGIN-LPC_ORD],ase_del,LPC_ORD);
-		lpc_synthesis(&sigbuf[BEGIN],&sigbuf[BEGIN],ase_den,LPC_ORD,length);
+		polflt(&sigbuf[BEGIN],ase_den,&sigbuf[BEGIN],LPC_ORD,length);
 		v_equ(ase_del,&sigbuf[BEGIN+length-LPC_ORD],LPC_ORD);
 		zerflt(&sigbuf[BEGIN],ase_num,&sigbuf[BEGIN],LPC_ORD,length);
 		v_equ(&sigbuf[BEGIN-TILT_ORD],tilt_del,TILT_ORD);
@@ -303,7 +310,7 @@ void melp_syn(struct melp_param *par, float sp_out[])
 		
 		/* Perform LPC synthesis filtering */
 		v_equ(&sigbuf[BEGIN-LPC_ORD],lpc_del,LPC_ORD);
-		lpc_synthesis(&sigbuf[BEGIN],&sigbuf[BEGIN],lpc,LPC_ORD,length);
+		polflt(&sigbuf[BEGIN],lpc,&sigbuf[BEGIN],LPC_ORD,length);
 		v_equ(lpc_del,&sigbuf[length+BEGIN-LPC_ORD],LPC_ORD);
 			
 		/* Adjust scaling of synthetic speech */
@@ -378,7 +385,7 @@ void melp_syn_init(melp_param_t *par)
     v_zap(prev_ncof,MIX_ORD+1);
     prev_ncof[MIX_ORD/2] = 1.0;
 	
-    fill(prev_par.fs_mag,1.0,NUM_HARM);
+    v_fill(prev_par.fs_mag,1.0,NUM_HARM);
 
     /* Initialize multi-stage vector quantization (read codebook)  */
 	par->msvq_par.num_best = MSVQ_M;

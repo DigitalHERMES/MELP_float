@@ -29,12 +29,8 @@ Group (phone 972 480 7442).
 #include	"spbstd.h"
 #include	"mat.h"
 
-#ifndef _MSC_VER
-#define ARM_MATH_CM4
-#endif
-#define __TARGET_FPU_VFP 1
-#define __FPU_PRESENT 1
-#include "arm_math.h"
+#define MAXSORT 5
+static float sorted[MAXSORT];
 
 /*								*/
 /*	Subroutine autocorr: calculate autocorrelations         */
@@ -71,16 +67,6 @@ void envelope(float input[], float prev_in, float output[], int npts)
     }
 }
 
-/*								*/
-/*  Subroutine fill: fill an input array with a value.		*/
-/*								*/
-void fill(float output[], float fillval, int npts)
-{
-  int i;
-
-  for (i = 0; i < npts; i++ )
-    output[i] = fillval;
-}
 
 /*								*/
 /*	Subroutine interp_array: interpolate array              */
@@ -98,8 +84,6 @@ void interp_array(float prev[],float curr[],float out[],float ifact,int size)
 /*								*/
 /*	Subroutine median: calculate median value               */
 /*								*/
-#define MAXSORT 5
-static float sorted[MAXSORT];
 
 float median(float input[], int npts)
 {
@@ -171,31 +155,11 @@ float peakiness(float input[], int npts)
       sum_abs += fabsf(input[i]);
 
     if (sum_abs > 0.01F)
-      peak_fact = sqrtf(npts*v_magsq(input,npts)) / sum_abs;
+      peak_fact = arm_sqrt(npts*v_magsq(input,npts)) / sum_abs;
     else
       peak_fact = 0.0;
 
     return(peak_fact);
-}
-
-/*								*/
-/*	Subroutine polflt: all pole (IIR) filter.		*/
-/*	Note: The filter coefficients represent the		*/
-/*	denominator only, and the leading coefficient		*/
-/*	is assumed to be 1.					*/
-/*      The output array can overlay the input.                 */
-/*								*/
-void polflt(float input[], float coeff[], float output[], int order,int npts)
-{
-    int i,j;
-    float accum;
-    
-    for (i = 0; i < npts; i++ ) {
-	accum = input[i];
-	for (j = 1; j <= order; j++ )
-	    accum -= output[i-j] * coeff[j];
-	output[i] = accum;
-    }
 }
 
 /*								*/
@@ -295,12 +259,25 @@ int unpack_code(unsigned int **p_ch_beg, int *p_ch_bit, int *p_code, int numbits
     return(ret_code);
 }
 
+
 /*								*/
-/*	Subroutine window: multiply signal by window            */
+/*	Subroutine polflt: all pole (IIR) filter.		*/
+/*	Note: The filter coefficients represent the		*/
+/*	denominator only, and the leading coefficient		*/
+/*	is assumed to be 1.					*/
+/*      The output array can overlay the input.                 */
 /*								*/
-void window(float input[], float win_cof[], float output[], int npts)
+void polflt(float input[], float coeff[], float output[], int order,int npts)
 {
-	arm_mult_f32(input, win_cof, output, npts);
+	int i,j;
+	float accum;
+
+	for (i = 0; i < npts; i++ ) {
+		accum = input[i];
+		for (j = 1; j <= order; j++ )
+			accum -= output[i-j] * coeff[j];
+		output[i] = accum;
+	}
 }
 
 /*								*/

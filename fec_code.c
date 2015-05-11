@@ -54,6 +54,8 @@ extern int syntab84[16];  /* (8,4) Hamming code syndrome->bep table */
 static int codewd74[7];
 static int codewd84[8];
 
+extern int pitch_dec[1<<PIT_BITS]; /* Pitch index decoding table */
+
 void fec_code(struct melp_param *par)
 {
 
@@ -104,9 +106,6 @@ void fec_code(struct melp_param *par)
     /* Encode pitch index */
     par->pitch_index = pitch_enc[par->pitch_index];
 }
-
-
-extern int pitch_dec[1<<PIT_BITS]; /* Pitch index decoding table */
 
 int fec_decode(struct melp_param *par, int erase)
 {
@@ -284,20 +283,20 @@ int sbc_syn(int x[], int n, int k, int *pmat)
 ** (7,4) Hamming code tables.
 */
 /* Parity generator matrix. */
-int pmat74[3][4] = {{1,1,0,1},{1,0,1,1},{0,1,1,1}};
+int pmat74[3][4] RODATA = {{1,1,0,1},{1,0,1,1},{0,1,1,1}};
 
 /* Syndrome table. */
-int syntab74[8] = {BEP_CORR,6,5,2,4,1,0,3};
+int syntab74[8] RODATA = {BEP_CORR,6,5,2,4,1,0,3};
 
 /*
 ** (8,4) extended Hamming code tables.
 */
 
 /* Parity generator matrix. */
-int pmat84[4][4] = {{1,1,0,1},{1,0,1,1},{0,1,1,1},{1,1,1,0}};
+int pmat84[4][4] RODATA = {{1,1,0,1},{1,0,1,1},{0,1,1,1},{1,1,1,0}};
 
 /* Syndrome->error position lookup table. */
-int syntab84[16] =
+int syntab84[16] RODATA =
 {
     BEP_CORR,    /* 0x0 */
     7,           /* 0x1 */
@@ -324,7 +323,7 @@ int syntab84[16] =
 ** values having Hamming weight > 2.
 */
 
-int pitch_enc[PIT_QLEV+1] = 
+int pitch_enc[PIT_QLEV+1] RODATA = 
 {
 0x0, /* UV_PIND */
 0x7, /* 1 (first pitch QL - note offset) */
@@ -435,7 +434,7 @@ int pitch_enc[PIT_QLEV+1] =
 ** creating false unvoiced condition.
 */
 
-int pitch_dec[1<<PIT_BITS] = 
+int pitch_dec[1<<PIT_BITS] RODATA = 
 {
 UV_PIND, /* 0x0 */
 UV_PIND, /* 0x1 */

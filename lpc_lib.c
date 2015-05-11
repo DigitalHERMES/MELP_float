@@ -25,6 +25,7 @@ Group (phone 972 480 7442).
 #include "spbstd.h"
 #include "lpc.h"
 #include "melp.h"
+#include "mat.h"
 /* 
     Name: lpc_aejw- Compute square of A(z) evaluated at exp(jw)
     Description:
@@ -62,8 +63,8 @@ float lpc_aejw(float *a,float w,int p)
             ...[a(p-1)+e(-jw)a(p)]]]]
     */
 
-    cs = cosf(w);
-    sn = -sinf(w);
+    cs = arm_cos(w);
+    sn = -arm_sin(w);
 
     c_re = cs*a[p];
     c_im = sn*a[p];
@@ -385,15 +386,15 @@ int lpc_lsp2pred(float *w,float *a,int p)
 	f[0] = f0;
 	f[1] = f1;
     f[0][0] = f[1][0] = 1.0;
-    f[0][1] = (float)-2.0f*cosf(w[1]*M_PI);
-    f[1][1] = (float)-2.0f*cosf(w[2]*M_PI);
+    f[0][1] = (float)-2.0f*arm_cos(w[1]*M_PI);
+    f[1][1] = (float)-2.0f*arm_cos(w[2]*M_PI);
 
     k = 3;
 
     for(i=2; i <= p2; i++)
     {
-        c[0] = (float)-2.0f*cosf(w[k++]*M_PI);
-        c[1] = (float)-2.0f*cosf(w[k++]*M_PI);
+        c[0] = (float)-2.0f*arm_cos(w[k++]*M_PI);
+        c[1] = (float)-2.0f*arm_cos(w[k++]*M_PI);
         f[0][i] = f[0][i-2];
         f[1][i] = f[1][i-2];
 
@@ -447,7 +448,8 @@ int lpc_refl2pred(float *k,float *a,int p)
 
 /* G - compute the value of the Chebychev series
                 sum c_k T_k(x) = x b_1(x) - b_2(x) + c_0
-                b_k(x) = 2x b_{k+1}(x) - b_{k+2}(x) + c_k */
+                b_k(x) = 2x b_{k+1}(x) - b_{k+2}(x) + c_k 
+*/
 static float lsp_g(float x,float *c,int p2)
 {
     int i;
@@ -468,7 +470,8 @@ static float lsp_g(float x,float *c,int p2)
 /* LSP_ROOTS
         - find the roots of the two polynomials G_1(x) and G_2(x)
           the first root corresponds to G_1(x)
-          compute the inverse cos (and these are the LSFs) */
+          compute the inverse cos (and these are the LSFs) 
+*/
 static int lsp_roots(float *w,float **c,int p2)
 {
     int i,k;
@@ -521,44 +524,4 @@ static int lsp_roots(float *w,float **c,int p2)
     }
     return(1);
 } /* LSP_ROOTS */
-
-/*
-    Name: lpc_synthesis- LPC synthesis filter.
-    Aliases: lpc_synthesis
-    Description:
-        LPC all-pole synthesis filter
-<nf>
-        for j = 0 to n-1
-            y[j] = x[j] - sum(k=1 to p) y[j-k] a[k]
-</nf>
-
-    Inputs:
-        x- input vector (n samples, x[0..n-1])
-        a- lpc vector (order p, a[1..p])
-        p- order of lpc filter
-        n- number of elements in vector which is to be filtered
-        y[-p..-1]- filter memory (past outputs)
-    Outputs:
-        y- output vector (n samples, y[0..n-1])
-    Returns: NULL
-    Includes:
-        spbstd.h
-        lpc.h
-
-    Systems and Info. Science Lab
-    Copyright (c) 1995 by Texas Instruments, Inc.  All rights reserved.
-
-*/
-
-int lpc_synthesis(float *x,float *y,float *a,int p,int n)
-{
-    int i,j;
-
-    for(j=0; j < n; j++)
-    {
-        for(i=p,y[j]=x[j]; i > 0; i--)
-            y[j] -= y[j-i]*a[i];
-    }
-    return(0);
-}
 

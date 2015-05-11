@@ -57,15 +57,15 @@ Group (phone 972 480 7442).
 
 
 /* Static memory */
-static float envdel2[NUM_BANDS];
-static float sigbuf[PIT_BEG+PIT_P_FR];
-static float sigbuf1[FRAME+DC_ORD];
+static float envdel2[NUM_BANDS]			CCMRAM;
+static float sigbuf[PIT_BEG+PIT_P_FR]	CCMRAM;
+static float sigbuf1[FRAME+DC_ORD]		CCMRAM;
 
-static float *bpfdel[NUM_BANDS];
-static float bpfdel_data[NUM_BANDS*BPF_ORD];
+static float *bpfdel[NUM_BANDS]			CCMRAM;
+static float bpfdel_data[NUM_BANDS*BPF_ORD] CCMRAM;
 
-static float *envdel[NUM_BANDS];
-static float envdel_data[NUM_BANDS*ENV_ORD];
+static float *envdel[NUM_BANDS]			CCMRAM;
+static float envdel_data[NUM_BANDS*ENV_ORD] CCMRAM;
 
 void bpvc_ana(float speech[], float fpitch[], float bpvc[], float pitch[])
 {
@@ -160,15 +160,15 @@ void bpvc_ana_init()
 #define DC_ORD 4
 
 /* DC removal filter */
-/* 4th order Chebychev Type II 60 Hz removal filter */
+/* 4th order Chebyshev Type II 60 Hz removal filter */
 /* cutoff=60 Hz, stop=-30 dB */
-static float dc_num[DC_ORD+1] = {    
+static float dc_num[DC_ORD+1] RODATA = {    
       0.92692416f,
      -3.70563834f,
       5.55742893f,
      -3.70563834f,
       0.92692416f};
-static float dc_den[DC_ORD+1] = {
+static float dc_den[DC_ORD+1] RODATA = {
        1.00000000f,
      -3.84610723f,
       5.55209760f,
@@ -529,7 +529,7 @@ void scale_adj(float *speech, float gain, float *prev_scale, int length, int sca
     float scale;
 
     /* Calculate desired scaling factor to match gain level */
-    scale = gain / (sqrtf(v_magsq(&speech[0],length) / length) + .01f);
+    scale = gain / (arm_sqrt(v_magsq(&speech[0],length) / length) + .01f);
 
     /* interpolate scale factors for first SCALEOVER points */
     for (i = 1; i < scale_over; i++) {

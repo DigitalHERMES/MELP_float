@@ -167,8 +167,16 @@ typedef struct melp_param {         /* MELP parameters */
 	msvq_param_t fsvq_par;		/* Fourier series VQ parameters */
 }melp_param_t;
 
+#ifdef _MSC_VER
+#define CCMRAM
+#define RODATA
+#else
+#define CCMRAM __attribute__((section (".ccmram")))
+#define RODATA __attribute__((section (".rodata")))
+#endif
+
 /* External function definitions */
-#ifdef _WIN32
+#ifdef _MSC_VER
 __declspec(dllexport) void __cdecl melp_ana(float sp_in[],struct melp_param *par);
 __declspec(dllexport) void __cdecl melp_syn(struct melp_param *par, float sp_out[]);
 __declspec(dllexport) void __cdecl melp_ana_init(struct melp_param *par);
