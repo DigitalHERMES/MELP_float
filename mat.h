@@ -28,25 +28,27 @@ Group (phone 972 480 7442).
 #define ARM_MATH_CM4
 #define __TARGET_FPU_VFP 1
 #define __FPU_PRESENT 1
+#include <stdint.h>
 #endif
+
 #include "arm_math.h"
 #include "arm_const_structs.h"
 
-__INLINE float v_inner(float *v1,float *v2,int n)
+static __INLINE float v_inner(float *v1,float *v2,int n)
 {
 	float innerprod;
 	arm_dot_prod_f32(v1, v2, n, &innerprod);
 	return innerprod;
 }
 
-__INLINE float v_magsq(float *v,int n)
+static __INLINE float v_magsq(float *v,int n)
 {
 	float magsq;
 	arm_power_f32(v, n, &magsq);
 	return magsq;
 }
 
-__INLINE int findmax(float input[], int npts)
+static __INLINE int findmax(float input[], int npts)
 {
 	unsigned int 	maxloc;
 	float   maxval;
@@ -54,29 +56,30 @@ __INLINE int findmax(float input[], int npts)
 	return (maxloc);
 }
 
-//__INLINE float arm_sqrt(float x)
-//{
-//	float32_t  res;
-//	arm_sqrt_f32(x, &res);
-//	return res;
-//}
-//
-//__INLINE float arm_sin(float x)
-//{
-//	float32_t  res;
-//	res = arm_sin_f32(x);
-//	return res;
-//}
-//
-//__INLINE float arm_cos(float x)
-//{
-//	float32_t  res;
-//	res = arm_cos_f32(x);
-//	return res;
-//}
-#define arm_sqrt	sqrtf
-#define arm_sin		sinf
-#define arm_cos		cosf
+static __INLINE float arm_sqrt(float x)
+{
+	float32_t  res;
+	arm_sqrt_f32(x, &res);
+	return res;
+}
+
+static __INLINE float arm_sin(float x)
+{
+	float32_t  res;
+	res = arm_sin_f32(x);
+	return res;
+}
+
+static __INLINE float arm_cos(float x)
+{
+	float32_t  res;
+	res = arm_cos_f32(x);
+	return res;
+}
+
+//#define arm_sqrt		sqrtf
+//#define arm_sin		sinf
+//#define arm_cos		cosf
 
 #define window(inp,cof,outp,n)		arm_mult_f32(inp, cof, outp, n)
 #define v_zap(v,n)					arm_fill_f32(0.0f, (float32_t *)v, n)

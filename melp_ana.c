@@ -168,8 +168,7 @@ void melp_ana(float sp_in[],struct melp_param *par)
     v_fill(par->fs_mag,1.0,NUM_HARM);
     if (par->bpvc[0] > bpthresh) {
 		lpc_lsp2pred(par->lsf,lpc,LPC_ORD);
-		zerflt(&speech[(FRAME_END-(LPC_FRAME/2))],lpc,sigbuf,
-			   LPC_ORD,LPC_FRAME);
+		zerflt(&speech[(FRAME_END-(LPC_FRAME/2))],lpc,sigbuf,LPC_ORD,LPC_FRAME);
 		window(sigbuf,win_cof,sigbuf,LPC_FRAME);
 		find_harm(sigbuf, par->fs_mag, par->pitch, NUM_HARM, LPC_FRAME);
     }
