@@ -78,12 +78,10 @@ void bpvc_ana(float speech[], float fpitch[], float bpvc[], float pitch[])
     v_equ(&bpfdel[0][0],&sigbuf[PIT_BEG+FRAME-BPF_ORD],BPF_ORD);
     zerflt(&sigbuf[PIT_BEG],&bpf_num[0],&sigbuf[PIT_BEG], BPF_ORD,PIT_P_FR);
     
-    *pitch = frac_pch(&sigbuf[FIRST_CNTR],
-				&bpvc[0],fpitch[0],5,PITCHMIN,PITCHMAX,MINLENGTH);
+    *pitch = frac_pch(&sigbuf[FIRST_CNTR], &bpvc[0],fpitch[0],5,PITCHMIN,PITCHMAX,MINLENGTH);
     
     for (j = 1; j < NUM_PITCHES; j++) {
-		temp = frac_pch(&sigbuf[FIRST_CNTR],
-				&pcorr,fpitch[j],5,PITCHMIN,PITCHMAX,MINLENGTH);
+		temp = frac_pch(&sigbuf[FIRST_CNTR], &pcorr,fpitch[j],5,PITCHMIN,PITCHMAX,MINLENGTH);
 		/* choose largest correlation value */
 		if (pcorr > bpvc[0]) {
 			*pitch = temp;
@@ -95,8 +93,7 @@ void bpvc_ana(float speech[], float fpitch[], float bpvc[], float pitch[])
     for (j = 1; j < NUM_BANDS; j++) {
 		/* Bandpass filter input speech */
 		v_equ(&sigbuf[PIT_BEG-BPF_ORD],&bpfdel[j][0],BPF_ORD);
-		polflt(&speech[PIT_FR_BEG],&bpf_den[j*(BPF_ORD+1)],&sigbuf[PIT_BEG],
-			   BPF_ORD,PIT_P_FR);
+		polflt(&speech[PIT_FR_BEG],&bpf_den[j*(BPF_ORD+1)],&sigbuf[PIT_BEG], BPF_ORD,PIT_P_FR);
 		v_equ(&bpfdel[j][0],&sigbuf[PIT_BEG+FRAME-BPF_ORD],BPF_ORD);
 		zerflt(&sigbuf[PIT_BEG],&bpf_num[j*(BPF_ORD+1)],&sigbuf[PIT_BEG],BPF_ORD,PIT_P_FR);
 		
@@ -112,8 +109,7 @@ void bpvc_ana(float speech[], float fpitch[], float bpvc[], float pitch[])
 		v_equ(&envdel[j][0],&sigbuf[PIT_BEG+FRAME-ENV_ORD],ENV_ORD);
 		
 		/* Check correlations for each frame */
-		temp = frac_pch(&sigbuf[FIRST_CNTR],&pcorr,
-				*pitch,0,PITCHMIN,PITCHMAX,MINLENGTH);
+		temp = frac_pch(&sigbuf[FIRST_CNTR],&pcorr,	*pitch,0 ,PITCHMIN,PITCHMAX,MINLENGTH);
 						
 		/* reduce envelope correlation */
 		pcorr -= 0.1f;		
@@ -175,9 +171,7 @@ static float dc_den[DC_ORD+1] RODATA = {
 void dc_rmv(float sigin[], float sigout[], float dcdel[], int frame)
 {
     /* Remove DC from input speech */
-    v_equ(sigbuf1,dcdel,DC_ORD);
-    polflt(sigin,dc_den,&sigbuf1[DC_ORD],DC_ORD,frame);
-    v_equ(dcdel,&sigbuf1[frame],DC_ORD);
+    iirflt(sigin,dc_den,&sigbuf1[DC_ORD],dcdel, DC_ORD,frame);
     zerflt(&sigbuf1[DC_ORD],dc_num,sigout,DC_ORD,frame);
 }
 

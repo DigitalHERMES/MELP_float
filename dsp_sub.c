@@ -281,9 +281,46 @@ void polflt(float input[], float coeff[], float output[], int order,int npts)
 }
 
 /*								*/
+/*	Subroutine iirflt: all pole (IIR) filter.		*/
+/*	Note: The filter coefficients represent the		*/
+/*	denominator only, and the leading coefficient		*/
+/*	is assumed to be 1.					*/
+/*      The output array can overlay the input.                 */
+/*								*/
+void iirflt(float input[], float coeff[], float output[], float delay[], int order,int npts)
+{
+	int i,j;
+	float accum;
+	v_equ(&output[-order], delay, order);
+	for (i = 0; i < npts; i++ ) {
+		accum = input[i];
+		for (j = 1; j <= order; j++ )
+			accum -= output[i-j] * coeff[j];
+		output[i] = accum;
+	}
+	v_equ(delay,&output[npts - order], order);
+}
+
+
+/*								*/
 /*	Subroutine zerflt: all zero (FIR) filter.		*/
 /*      Note: the output array can overlay the input.           */
 /*								*/
+void firflt(float input[], float coeff[], float output[], float delay[], int order, int npts)
+{
+	int i,j;
+	float accum;
+
+	v_equ(&input[-order], delay, order);
+	v_equ(delay, &input[npts - order], order);
+	for (i = npts-1; i >= 0; i-- ) {
+		accum = 0.0;
+		for (j = 0; j <= order; j++ )
+			accum += input[i-j] * coeff[j];
+		output[i] = accum;
+	}
+}
+
 void zerflt(float input[], float coeff[], float output[], int order, int npts)
 {
     int i,j;

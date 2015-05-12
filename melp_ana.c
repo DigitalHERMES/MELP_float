@@ -55,7 +55,6 @@ static float weights[LPC_ORD]		CCMRAM;
 void melp_ana(float sp_in[],struct melp_param *par)
 {
     int i;
-    int begin;
     float sub_pitch;
     float temp,pcorr,bpthresh;
 
@@ -72,8 +71,7 @@ void melp_ana(float sp_in[],struct melp_param *par)
     
     /* Perform global pitch search at frame end on lowpass speech signal */
     /* Note: avoid short pitches due to formant tracking */
-    fpitch[1] = find_pitch(&sigbuf[LPF_ORD+(PITCH_FR/2)],&temp,
-			     (2*PITCHMIN),PITCHMAX,PITCHMAX);
+    fpitch[1] = find_pitch(&sigbuf[LPF_ORD+(PITCH_FR/2)],&temp,(2*PITCHMIN),PITCHMAX,PITCHMAX);
     
     /* Perform bandpass voicing analysis for end of frame */
     bpvc_ana(&speech[FRAME_END], fpitch, &par->bpvc[0], &sub_pitch);
@@ -95,8 +93,7 @@ void melp_ana(float sp_in[],struct melp_param *par)
     zerflt(&speech[PITCH_BEG],lpc,&sigbuf[LPF_ORD],LPC_ORD,PITCH_FR);
         
     /* Check peakiness of residual signal */
-    begin = (LPF_ORD+(PITCHMAX/2));
-    temp = peakiness(&sigbuf[begin],PITCHMAX);
+    temp = peakiness(&sigbuf[(LPF_ORD+(PITCHMAX/2))],PITCHMAX);
     
     /* Peakiness: force lowest band to be voiced  */
     if (temp > PEAK_THRESH) {
@@ -110,8 +107,7 @@ void melp_ana(float sp_in[],struct melp_param *par)
     }
 		
     /* Calculate overall frame pitch using lowpass filtered residual */
-    par->pitch = pitch_ana(&speech[FRAME_END], &sigbuf[LPF_ORD+PITCHMAX], 
-			   sub_pitch,pitch_avg,&pcorr);
+    par->pitch = pitch_ana(&speech[FRAME_END], &sigbuf[LPF_ORD+PITCHMAX], sub_pitch,pitch_avg,&pcorr);
     bpthresh = BPTHRESH;
     
     /* Calculate gain of input speech for each gain subframe */
@@ -119,12 +115,10 @@ void melp_ana(float sp_in[],struct melp_param *par)
 		if (par->bpvc[0] > bpthresh) {
 			/* voiced mode: pitch synchronous window length */
 			temp = sub_pitch;
-			par->gain[i] = gain_ana(&speech[FRAME_BEG+(i+1)*GAINFR],
-						temp,MIN_GAINFR,2*PITCHMAX);
+			par->gain[i] = gain_ana(&speech[FRAME_BEG+(i+1)*GAINFR], temp,MIN_GAINFR,2*PITCHMAX);
 		}else {
 			temp = 1.33f*GAINFR - 0.5f;
-			par->gain[i] = gain_ana(&speech[FRAME_BEG+(i+1)*GAINFR],
-						temp,0,2*PITCHMAX);
+			par->gain[i] = gain_ana(&speech[FRAME_BEG+(i+1)*GAINFR], temp,0,2*PITCHMAX);
 		}
     }
     

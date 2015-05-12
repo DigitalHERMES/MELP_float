@@ -49,10 +49,10 @@ static float sig2[BEGIN+PITCHMAX]	CCMRAM;
 static float fs_real[PITCHMAX]		CCMRAM;
 
 /* permanent memory */ 
-static int firstcall = 1; /* Just used for noise gain init */
+static int	 firstcall = 1; /* Just used for noise gain init */
 static float sigsave[2*PITCHMAX]	CCMRAM;
 static struct melp_param prev_par;
-static int syn_begin;
+static int	 syn_begin;
 static float prev_scale;
 static float noise_gain = MIN_NOISE;
 static float pulse_del[MIX_ORD]		CCMRAM,
@@ -161,8 +161,7 @@ void melp_syn(struct melp_param *par, float sp_out[])
     }else if (!erase) 
 	{
 		for (i = 0; i < NUM_GAINFR; i++) {
-			noise_est(par->gain[i],&noise_gain,UPCONST,DOWNCONST,
-				  MIN_NOISE,MAX_NOISE);
+			noise_est(par->gain[i],&noise_gain,UPCONST,DOWNCONST,MIN_NOISE,MAX_NOISE);
 			/* Adjust gain based on noise level (noise suppression) */
 			noise_sup(&par->gain[i],noise_gain,MAX_NS_SUP,MAX_NS_ATT,NFACT);
 		}   
@@ -215,10 +214,10 @@ void melp_syn(struct melp_param *par, float sp_out[])
 		/* interpolate gain */
 		if (gaincnt > 1) {
 			gain = ifact_gain*par->gain[gaincnt-1] + 
-			(1.0f-ifact_gain)*par->gain[gaincnt-2];
+				(1.0f-ifact_gain)*par->gain[gaincnt-2];
 		}else {
 			gain = ifact_gain*par->gain[gaincnt-1] + 
-			(1.0f-ifact_gain)*prev_par.gain[NUM_GAINFR-1];
+				(1.0f-ifact_gain)*prev_par.gain[NUM_GAINFR-1];
 		}
 		
 		/* Set overall interpolation path based on gain change */
@@ -249,7 +248,7 @@ void melp_syn(struct melp_param *par, float sp_out[])
 		
 		/* interpolate pitch and pulse gain */
 		pitch = intfact*par->pitch + (1.0f-intfact)*prev_par.pitch;
-		pulse_gain = SYN_GAIN*arm_sqrt(pitch);
+		pulse_gain = SYN_GAIN * arm_sqrt(pitch);
 		
 		/* interpolate pulse and noise coefficients */
 		temp = arm_sqrt(ifact);
@@ -284,50 +283,49 @@ void melp_syn(struct melp_param *par, float sp_out[])
 		v_scale(&sigbuf[BEGIN],pulse_gain,length);	
 		
 		/* Filter and scale pulse excitation */
-		v_equ(&sigbuf[BEGIN-MIX_ORD],pulse_del,MIX_ORD);
-		v_equ(pulse_del,&sigbuf[length+BEGIN-MIX_ORD],MIX_ORD);
-		zerflt(&sigbuf[BEGIN],pulse_cof,&sigbuf[BEGIN],MIX_ORD,length);
+		// v_equ(&sigbuf[BEGIN-MIX_ORD],pulse_del,MIX_ORD);
+		// v_equ(pulse_del,&sigbuf[length+BEGIN-MIX_ORD],MIX_ORD);
+		firflt(&sigbuf[BEGIN],pulse_cof,&sigbuf[BEGIN], pulse_del, MIX_ORD,length);
 		
 		/* Get scaled noise excitation */
 		rand_num(&sig2[BEGIN],(1.732f*SYN_GAIN),length);
 		
 		/* Filter noise excitation */
-		v_equ(&sig2[BEGIN-MIX_ORD],noise_del,MIX_ORD);
-		v_equ(noise_del,&sig2[length+BEGIN-MIX_ORD],MIX_ORD);
-		zerflt(&sig2[BEGIN],noise_cof,&sig2[BEGIN],MIX_ORD,length);
+		// v_equ(&sig2[BEGIN-MIX_ORD],noise_del,MIX_ORD);
+		// v_equ(noise_del,&sig2[length+BEGIN-MIX_ORD],MIX_ORD);
+		firflt(&sig2[BEGIN],noise_cof,&sig2[BEGIN], noise_del, MIX_ORD,length);
 		
 		/* Add two excitation signals (mixed excitation) */
 		v_add(&sigbuf[BEGIN],&sig2[BEGIN],length);
 		
 		/* Adaptive spectral enhancement */
-		v_equ(&sigbuf[BEGIN-LPC_ORD],ase_del,LPC_ORD);
-		polflt(&sigbuf[BEGIN],ase_den,&sigbuf[BEGIN],LPC_ORD,length);
-		v_equ(ase_del,&sigbuf[BEGIN+length-LPC_ORD],LPC_ORD);
+		// v_equ(&sigbuf[BEGIN-LPC_ORD],ase_del,LPC_ORD);
+		iirflt(&sigbuf[BEGIN],ase_den,&sigbuf[BEGIN],ase_del, LPC_ORD, length);
+		// v_equ(ase_del,&sigbuf[BEGIN+length-LPC_ORD],LPC_ORD);
 		zerflt(&sigbuf[BEGIN],ase_num,&sigbuf[BEGIN],LPC_ORD,length);
-		v_equ(&sigbuf[BEGIN-TILT_ORD],tilt_del,TILT_ORD);
-		v_equ(tilt_del,&sigbuf[length+BEGIN-TILT_ORD],TILT_ORD);
-		zerflt(&sigbuf[BEGIN],tilt_cof,&sigbuf[BEGIN],TILT_ORD,length);
+		// v_equ(&sigbuf[BEGIN-TILT_ORD],tilt_del,TILT_ORD);
+		// v_equ(tilt_del,&sigbuf[length+BEGIN-TILT_ORD],TILT_ORD);
+		firflt(&sigbuf[BEGIN],tilt_cof,&sigbuf[BEGIN], tilt_del, TILT_ORD, length);
 		
 		/* Perform LPC synthesis filtering */
-		v_equ(&sigbuf[BEGIN-LPC_ORD],lpc_del,LPC_ORD);
-		polflt(&sigbuf[BEGIN],lpc,&sigbuf[BEGIN],LPC_ORD,length);
-		v_equ(lpc_del,&sigbuf[length+BEGIN-LPC_ORD],LPC_ORD);
+		//v_equ(&sigbuf[BEGIN-LPC_ORD],lpc_del,LPC_ORD);
+		iirflt(&sigbuf[BEGIN],lpc,&sigbuf[BEGIN],lpc_del, LPC_ORD,length);
+		// v_equ(lpc_del,&sigbuf[length+BEGIN-LPC_ORD],LPC_ORD);
 			
 		/* Adjust scaling of synthetic speech */
 		scale_adj(&sigbuf[BEGIN],gain,&prev_scale,length,SCALEOVER);
 
 		/* Implement pulse dispersion filter */
-		v_equ(&sigbuf[BEGIN-DISP_ORD],disp_del,DISP_ORD);
-		v_equ(disp_del,&sigbuf[length+BEGIN-DISP_ORD],DISP_ORD);
-		zerflt(&sigbuf[BEGIN],disp_cof,&sigbuf[BEGIN],DISP_ORD,length);
+		// v_equ(&sigbuf[BEGIN-DISP_ORD],disp_del,DISP_ORD);
+		// v_equ(disp_del,&sigbuf[length+BEGIN-DISP_ORD],DISP_ORD);
+		firflt(&sigbuf[BEGIN],disp_cof,&sigbuf[BEGIN], disp_del, DISP_ORD,length);
 			
 		/* Copy processed speech to output array (not past frame end) */
 		if (syn_begin+length > FRAME) {
 			v_equ(&sp_out[syn_begin],&sigbuf[BEGIN],FRAME-syn_begin);
 					
 			/* past end: save remainder in sigsave[0] */
-			v_equ(&sigsave[0],&sigbuf[BEGIN+FRAME-syn_begin],
-			  length-(FRAME-syn_begin));
+			v_equ(&sigsave[0],&sigbuf[BEGIN+FRAME-syn_begin],  length-(FRAME-syn_begin));
 		}else {
 			v_equ(&sp_out[syn_begin],&sigbuf[BEGIN],length);
 		}

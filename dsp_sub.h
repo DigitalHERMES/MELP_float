@@ -33,7 +33,10 @@ void quant_u_dec(int index, float *p_data,float qmin, float qmax, int nlev);
 void rand_num(float output[],float amplitude, int npts);
 
 void polflt(float input[], float coeff[], float output[], int order,int npts);
+void iirflt(float input[], float coeff[], float output[], float delay[], int order,int npts);
+
 void zerflt(float input[], float coeff[], float output[], int order,int npts);
+void firflt(float input[], float coeff[], float output[], float delay[], int order,int npts);
 
 void  pack_code(int code,unsigned int **p_ch_beg,int *p_ch_bit,int numbits,int size);
 int unpack_code(unsigned int **p_ch_beg,int *p_ch_bit,int *p_code,int numbits,int wsize,unsigned int erase_mask);
