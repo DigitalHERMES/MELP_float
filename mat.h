@@ -4,7 +4,7 @@
 
 version 1.2
 
-Copyright (c) 1996, Texas Instruments, Inc.  
+Copyright (c) 1996, Texas Instruments, Inc.
 
 Texas Instruments has intellectual property rights on the MELP
 algorithm.  The Texas Instruments contact for licensing issues for
@@ -15,9 +15,9 @@ Group (phone 972 480 7442).
 
 */
 
-/* 
+/*
    mat.h     Matrix include file.
-             (Low level matrix and vector functions.)  
+             (Low level matrix and vector functions.)
 
    Copyright (c) 1995 by Texas Instruments, Inc.  All rights reserved.
 */
@@ -25,7 +25,9 @@ Group (phone 972 480 7442).
 #define  __MAT_H__
 
 #ifndef _MSC_VER
+#ifndef ARM_MATH_CM4
 #define ARM_MATH_CM4
+#endif
 #define __TARGET_FPU_VFP 1
 #define __FPU_PRESENT 1
 #include <stdint.h>
@@ -50,7 +52,7 @@ static __INLINE float v_magsq(float *v,int n)
 
 static __INLINE int findmax(float input[], int npts)
 {
-	unsigned int 	maxloc;
+	uint32_t	maxloc;
 	float   maxval;
 	arm_max_f32(input, npts, &maxval, &maxloc);
 	return (maxloc);
@@ -81,7 +83,7 @@ static __INLINE float arm_cos(float x)
 //#define arm_sin		sinf
 //#define arm_cos		cosf
 
-#define window(inp,cof,outp,n)		arm_mult_f32(inp, cof, outp, n)
+#define window(inp,cof,outp,n)		arm_mult_f32((float32_t *)inp, (float32_t *)cof, (float32_t *)outp, n)
 #define v_zap(v,n)					arm_fill_f32(0.0f, (float32_t *)v, n)
 #define v_fill(v,val,n)				arm_fill_f32(val, (float32_t *)v, n)
 #define v_equ(v1,v2,n) 				arm_copy_f32((float32_t *)v2, (float32_t *)v1, n)

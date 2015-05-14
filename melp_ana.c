@@ -64,9 +64,9 @@ void melp_ana(float sp_in[],struct melp_param *par)
     
     /* Copy input speech to pitch window and lowpass filter */
     v_equ(&sigbuf[LPF_ORD],&speech[PITCH_BEG],PITCH_FR);
-    v_equ(sigbuf,lpfsp_del,LPF_ORD);
-    polflt(&sigbuf[LPF_ORD],lpf_den,&sigbuf[LPF_ORD],LPF_ORD,PITCH_FR);
-    v_equ(lpfsp_del,&sigbuf[FRAME],LPF_ORD);
+//    v_equ(sigbuf,lpfsp_del,LPF_ORD);
+    iirflt(&sigbuf[LPF_ORD],lpf_den,&sigbuf[LPF_ORD], lpfsp_del, LPF_ORD,PITCH_FR);
+//    v_equ(lpfsp_del,&sigbuf[FRAME],LPF_ORD);
     zerflt(&sigbuf[LPF_ORD],lpf_num,&sigbuf[LPF_ORD],LPF_ORD,PITCH_FR);
     
     /* Perform global pitch search at frame end on lowpass speech signal */

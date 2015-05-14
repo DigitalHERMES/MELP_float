@@ -107,17 +107,17 @@ Group (phone 972 480 7442).
 #define MINFRAC -1.0f
 
 /* External variables */
-extern float lpf_num[], lpf_den[];
-extern float bpf_num[], bpf_den[];
-extern float win_cof[];
+extern const float lpf_num[], lpf_den[];
+extern const float bpf_num[], bpf_den[];
+extern const float win_cof[];
 extern float msvq_cb[];
 extern float fsvq_cb[];
-extern float bp_cof[NUM_BANDS][MIX_ORD+1];
-extern float disp_cof[DISP_ORD+1];
+extern const float bp_cof[NUM_BANDS][MIX_ORD+1];
+extern const float disp_cof[DISP_ORD+1];
 extern int fsvq_weighted;
 
 /* compiler constants */
- 
+
 #if (MIX_ORD > DISP_ORD)
 #define BEGIN MIX_ORD
 #else

@@ -4,7 +4,7 @@
 
 version 1.2
 
-Copyright (c) 1996, Texas Instruments, Inc.  
+Copyright (c) 1996, Texas Instruments, Inc.
 
 Texas Instruments has intellectual property rights on the MELP
 algorithm.  The Texas Instruments contact for licensing issues for
@@ -15,7 +15,7 @@ Group (phone 972 480 7442).
 
 */
 
-/*  
+/*
 
   dsp_sub.c: general subroutines.
 
@@ -58,7 +58,6 @@ void envelope(float input[], float prev_in, float output[], int npts)
 {
     int i;
     float curr_abs, prev_abs;
-
     prev_abs = fabsf(prev_in);
     for (i = 0; i < npts; i++) {
 		curr_abs = fabsf(input[i]);
@@ -71,14 +70,14 @@ void envelope(float input[], float prev_in, float output[], int npts)
 /*								*/
 /*	Subroutine interp_array: interpolate array              */
 /*                                                              */
-void interp_array(float prev[],float curr[],float out[],float ifact,int size)
+void interp_array(float prev[],float curr[],float out[],float ifact,int npts)
 {
     int i;
     float ifact2;
 
     ifact2 = 1.0F - ifact;
-    for (i = 0; i < size; i++)
-      out[i] = ifact*curr[i] + ifact2*prev[i];      
+    for (i = 0; i < npts; i++)
+      out[i] = ifact*curr[i] + ifact2*prev[i];
 }
 
 /*								*/
@@ -235,7 +234,7 @@ int unpack_code(unsigned int **p_ch_beg, int *p_ch_bit, int *p_code, int numbits
 	ch_bit = *p_ch_bit;
 	ch_word = *p_ch_beg;
 	*p_code = 0;
-        ret_code = *ch_word & ERASE_MASK;    
+        ret_code = *ch_word & ERASE_MASK;
 
 	for (i = 0; i < numbits; i++) {
 		/* Mask in bit from channel word to code	*/
@@ -254,7 +253,7 @@ int unpack_code(unsigned int **p_ch_beg, int *p_ch_bit, int *p_code, int numbits
 
     /* Catch erasure in new word if read */
     if (ch_bit != 0)
-      ret_code |= *ch_word & ERASE_MASK;    
+      ret_code |= *ch_word & ERASE_MASK;
 
     return(ret_code);
 }
@@ -267,11 +266,10 @@ int unpack_code(unsigned int **p_ch_beg, int *p_ch_bit, int *p_code, int numbits
 /*	is assumed to be 1.					*/
 /*      The output array can overlay the input.                 */
 /*								*/
-void polflt(float input[], float coeff[], float output[], int order,int npts)
+void polflt(float input[], const float coeff[], float output[], int order,int npts)
 {
 	int i,j;
 	float accum;
-
 	for (i = 0; i < npts; i++ ) {
 		accum = input[i];
 		for (j = 1; j <= order; j++ )
@@ -287,10 +285,11 @@ void polflt(float input[], float coeff[], float output[], int order,int npts)
 /*	is assumed to be 1.					*/
 /*      The output array can overlay the input.                 */
 /*								*/
-void iirflt(float input[], float coeff[], float output[], float delay[], int order,int npts)
+void iirflt(float input[], const float coeff[], float output[], float delay[], int order,int npts)
 {
 	int i,j;
 	float accum;
+
 	v_equ(&output[-order], delay, order);
 	for (i = 0; i < npts; i++ ) {
 		accum = input[i];
@@ -303,10 +302,10 @@ void iirflt(float input[], float coeff[], float output[], float delay[], int ord
 
 
 /*								*/
-/*	Subroutine zerflt: all zero (FIR) filter.		*/
+/*	Subroutine firflt: all zero (FIR) filter.		*/
 /*      Note: the output array can overlay the input.           */
 /*								*/
-void firflt(float input[], float coeff[], float output[], float delay[], int order, int npts)
+void firflt(float input[], const float coeff[], float output[], float delay[], int order, int npts)
 {
 	int i,j;
 	float accum;
@@ -321,7 +320,7 @@ void firflt(float input[], float coeff[], float output[], float delay[], int ord
 	}
 }
 
-void zerflt(float input[], float coeff[], float output[], int order, int npts)
+void zerflt(float input[], const float coeff[], float output[], int order, int npts)
 {
     int i,j;
     float accum;

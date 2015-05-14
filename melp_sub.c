@@ -73,9 +73,9 @@ void bpvc_ana(float speech[], float fpitch[], float bpvc[], float pitch[])
     int j;
 	
     /* Filter lowest band and estimate pitch */
-    v_equ(&sigbuf[PIT_BEG-BPF_ORD],&bpfdel[0][0],BPF_ORD);
-    polflt(&speech[PIT_FR_BEG],&bpf_den[0],&sigbuf[PIT_BEG], BPF_ORD,PIT_P_FR);
-    v_equ(&bpfdel[0][0],&sigbuf[PIT_BEG+FRAME-BPF_ORD],BPF_ORD);
+//    v_equ(&sigbuf[PIT_BEG-BPF_ORD],&bpfdel[0][0],BPF_ORD);
+    iirflt(&speech[PIT_FR_BEG],&bpf_den[0],&sigbuf[PIT_BEG], &bpfdel[0][0], BPF_ORD,PIT_P_FR);
+//    v_equ(&bpfdel[0][0],&sigbuf[PIT_BEG+FRAME-BPF_ORD],BPF_ORD);
     zerflt(&sigbuf[PIT_BEG],&bpf_num[0],&sigbuf[PIT_BEG], BPF_ORD,PIT_P_FR);
     
     *pitch = frac_pch(&sigbuf[FIRST_CNTR], &bpvc[0],fpitch[0],5,PITCHMIN,PITCHMAX,MINLENGTH);
@@ -92,9 +92,9 @@ void bpvc_ana(float speech[], float fpitch[], float bpvc[], float pitch[])
     /* Calculate bandpass voicing for frames */
     for (j = 1; j < NUM_BANDS; j++) {
 		/* Bandpass filter input speech */
-		v_equ(&sigbuf[PIT_BEG-BPF_ORD],&bpfdel[j][0],BPF_ORD);
-		polflt(&speech[PIT_FR_BEG],&bpf_den[j*(BPF_ORD+1)],&sigbuf[PIT_BEG], BPF_ORD,PIT_P_FR);
-		v_equ(&bpfdel[j][0],&sigbuf[PIT_BEG+FRAME-BPF_ORD],BPF_ORD);
+//		v_equ(&sigbuf[PIT_BEG-BPF_ORD],&bpfdel[j][0],BPF_ORD);
+		iirflt(&speech[PIT_FR_BEG],&bpf_den[j*(BPF_ORD+1)],&sigbuf[PIT_BEG], &bpfdel[j][0], BPF_ORD,PIT_P_FR);
+//		v_equ(&bpfdel[j][0],&sigbuf[PIT_BEG+FRAME-BPF_ORD],BPF_ORD);
 		zerflt(&sigbuf[PIT_BEG],&bpf_num[j*(BPF_ORD+1)],&sigbuf[PIT_BEG],BPF_ORD,PIT_P_FR);
 		
 		/* Check correlations for each frame */

@@ -298,9 +298,9 @@ float pitch_ana(float speech[], float resid[], float pitch_est, float pitch_avg,
 
     /* Lowpass filter residual signal */
     v_equ(&sigbuf[LPF_ORD],&resid[-PITCHMAX],PITCH_FR);
-    v_equ(sigbuf,lpres_del,LPF_ORD);
-    polflt(&sigbuf[LPF_ORD],lpf_den,&sigbuf[LPF_ORD],LPF_ORD,PITCH_FR);
-    v_equ(lpres_del,&sigbuf[FRAME],LPF_ORD);
+//    v_equ(sigbuf,lpres_del,LPF_ORD);
+    iirflt(&sigbuf[LPF_ORD],lpf_den,&sigbuf[LPF_ORD], lpres_del, LPF_ORD, PITCH_FR);
+//    v_equ(lpres_del,&sigbuf[FRAME],LPF_ORD);
     zerflt(&sigbuf[LPF_ORD],lpf_num,&sigbuf[LPF_ORD],LPF_ORD,PITCH_FR);
 
     /* Perform local search around pitch estimate */
