@@ -168,6 +168,8 @@ static float dc_den[DC_ORD+1] RODATA = {
      -3.56516069f,
       0.85918839f};
 
+static float sigbuf2[FRAME+DC_ORD]		CCMRAM;
+
 void dc_rmv(float sigin[], float sigout[], float dcdel[], int frame)
 {
     /* Remove DC from input speech */
