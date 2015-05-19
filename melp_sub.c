@@ -44,10 +44,6 @@ Group (phone 972 480 7442).
     Copyright (c) 1995 by Texas Instruments, Inc.  All rights reserved.
 */
 
-/* Filter orders */
-#define ENV_ORD 2
-#define BPF_ORD 6
-
 /* Constants */
 #define PIT_BEG		BPF_ORD
 #define PIT_P_FR	((2*PITCHMAX)+1)

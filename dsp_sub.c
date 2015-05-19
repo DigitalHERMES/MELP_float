@@ -286,27 +286,10 @@ void polflt(float input[], const float coeff[], float output[], int order,int np
 /*	is assumed to be 1.					*/
 /*      The output array can overlay the input.                 */
 /*								*/
-float  testInput[300];
-float  testOutput[300];
-
 void iirflt(float input[], const float coeff[], float output[], float delay[], int order,int npts)
 {
-	int i,j;
-	float accum;
-
-	v_equ(testInput, input, npts);
-	v_equ(&testOutput[0], delay, order);
-
 	v_equ(&output[-order], delay, order);
-	for (i = 0; i < npts; i++ ) {
-		accum = input[i];
-		for (j = 1; j <= order; j++ )
-			accum -= output[i-j] * coeff[j];
-		output[i] = accum;
-	}
-
-	arm_iirflt_f32(testInput, coeff, &testOutput[order], order, npts);
-
+	arm_iirflt_f32(input, coeff, output, order, npts);
 	v_equ(delay,&output[npts - order], order);
 }
 
@@ -318,8 +301,8 @@ void iirflt(float input[], const float coeff[], float output[], float delay[], i
 void firflt(float input[], const float coeff[], float output[], float delay[], int order, int npts)
 {
 	v_equ(&input[-order], delay, order);
-	v_equ(delay, &input[npts - order], order);
 	arm_firflt_f32(input,coeff, output, order, npts);
+	v_equ(delay, &input[npts - order], order);
 
 //	for (i = npts-1; i >= 0; i-- ) {
 //		accum = 0.0;
@@ -525,131 +508,127 @@ void arm_iirflt_f32(float *pSrc, const float *pCoeffs, float *pDst, int order, i
 {
    const float *py, *pa;                      /* Temporary pointers for state and coefficient buffers */
    float acc0, acc1, acc2, acc3;			  /* Accumulators */
-   float y1, y2, y3, y4;					  /* Temporary variables to hold state and coefficient values */
+   float y1, y2, y3, y4, y5, y6, y7, y8, y9, y10;			  /* Temporary variables to hold state */
+   float a1, a2, a3, a4, a5, a6, a7, a8, a9, a10;			  /* Temporary coefficients */
    int32_t numTaps, tapCnt, blkCnt;			  /* Loop counters */
-   float a1, a2, a3, a4;					  /* Temporary coefficients */
 
    numTaps = order ;						  /* The number of used previous outputs  */
 
 
+   /* Initialize state pointer */
+   py = pDst - 1;			// Point to a y1 - the last (timewise) delayed output 
+
+   /* Initialize coeff pointer */
+   pa = pCoeffs + 1;		
+
+	 a1 = *(pa++);
+     a2 = *(pa++);
+	 y1 = *(py--);
+	 y2 = *(py--);
+
+	 switch(numTaps)
+      {
+	  case 4:
+		 a3 = *(pa++);
+		 a4 = *(pa++);
+		 y3 = *(py--);
+	     y4 = *(py--);
+		 break;
+
+	  case 6:
+		 a3 = *(pa++);
+		 a4 = *(pa++);
+		 a5 = *(pa++);
+		 a6 = *(pa++);
+		 y3 = *(py--);
+	     y4 = *(py--);
+		 y5 = *(py--);
+	     y6 = *(py--);
+		 break;
+
+	  case 10:
+		 a3 = *(pa++);
+		 a4 = *(pa++);
+		 a5 = *(pa++);
+		 a6 = *(pa++);
+		 a7 = *(pa++);
+		 a8 = *(pa++);
+		 a9 = *(pa++);
+		 a10 = *(pa++);
+		 y3 = *(py--);
+	     y4 = *(py--);
+		 y5 = *(py--);
+	     y6 = *(py--);
+		 y7 = *(py--);
+	     y8 = *(py--);
+		 y9 = *(py--);
+	     y10 = *(py--);
+		 break;
+
+	  default:
+		 break;
+      }
+	
    /* Apply loop unrolling and compute 4 output values simultaneously.  
     * The variables acc0 ... acc3 hold output values that are being computed:  
    */
-   blkCnt = npts >> 2;
+   blkCnt = npts;
    /* First part of the processing with loop unrolling.  Compute 4 outputs at a time.  
-   ** a second block below computes the remaining 1 to 3 samples. */
-   while(blkCnt > 0u)
+   ** a second block below computes the remaining samples. */
+   while(blkCnt >= 4u)
    {
       /* Set all accumulators to x[0], x[1] x[2] x[3] */
       acc0 = *pSrc++;
       acc1 = *pSrc++;
       acc2 = *pSrc++;
       acc3 = *pSrc++;
-
-	  /* Initialize state pointer */
-      py = pDst - numTaps;
-      /* Initialize coeff pointer */
-      pa = pCoeffs + numTaps;		
    
-      /* Read the first four samples from the state buffer */
-      y1 = *py++;
-      y2 = *py++;
-      y3 = *py++;
-      y4 = *py++;
-
-      /* Loop unrolling.  Process 4 taps at a time. */
-      tapCnt = numTaps;
-      
-      /* Loop over the number of taps.  Unroll by a factor of 4.  
-       ** Repeat until we've computed numTaps-4 coefficients. */
-      while(tapCnt > 4)
+      /* Make a super-optimized filter for 2, 4, 6 and 10 IIR taps*/
+      switch(numTaps)
       {
-         /* Read the b[nTaps] coefficient */
-         a4 = *(pa--);
-
-         acc0 -= y1 * a4;
-         acc1 -= y2 * a4;
-         acc2 -= y3 * a4;
-         acc3 -= y4 * a4;
-
-		 /* Read the b[nTaps - 1] coefficient */
-         a3 = *(pa--);
-		 y1 = *(py++);
-
-		 /* Perform the multiply-accumulate */
-         acc0 -= y2 * a3;
-         acc1 -= y3 * a3;
-         acc2 -= y4 * a3;
-         acc3 -= y1 * a3;
-
-         /* Read the b[nTaps - 2] coefficient */
-         a2 = *(pa--);
-         y2 = *(py++);
-         
-         /* Perform the multiply-accumulates */      
-         acc0 -= y3 * a2;
-         acc1 -= y4 * a2;
-         acc2 -= y1 * a2;
-         acc3 -= y2 * a2;
-
-		 /* Read the b[nTaps - 3] coefficient */
-         a1 = *(pa--);
-         y3 = *(py++);
-
-         /* Perform the multiply-accumulates */      
-         acc0 -= y4 * a1;
-         acc1 -= y1 * a1;
-         acc2 -= y2 * a1;
-         acc3 -= y3 * a1;
-
-		 y4 = *(py++);
-		 tapCnt -= 4;
-     }
-
-      /* If the filter length is not a multiple of 4, compute the remaining filter taps */
-      switch(tapCnt)
-      {
-	  case 1:
-         a1 = *(pa--);
-		 acc0 -= y4 * a1;
-		 acc1 -= acc0 * a1;
-		 acc2 -= acc1 * a1;
-		 acc3 -= acc3 * a1;
-		 break;
-
 	  case 2:
-         a2 = *(pa--);
-         a1 = *(pa--);
-		 acc0 -= (y4 * a1 + y3 * a2) ;
-		 acc1 -= (acc0 * a1 + y4 * a2);
-		 acc2 -= (acc1 * a1 + acc0 * a2);
+		 acc0 -= (y1 * a1 + y2 * a2) ;
+		 acc1 -= (acc0 * a1 + y1 * a2);
+		 acc2 -= (acc1 * a1 + acc0 * a2 );
 		 acc3 -= (acc2 * a1 + acc1 * a2);
 		 break;
 
-	  case 3:
-         a3 = *(pa--);
-         a2 = *(pa--);
-         a1 = *(pa--);
-		 acc0 -= (y4 * a1 + y3 * a2 + y2 * a3) ;
-		 acc1 -= (acc0 * a1 + y4 * a2 + y3 * a3);
-		 acc2 -= (acc1 * a1 + acc0 * a2 + y4 * a3);
-		 acc3 -= (acc2 * a1 + acc1 * a2 + acc0 * a3);
+	  case 4:
+		 acc0 -= (y1 * a1 + y2 * a2 + y3 * a3 + y4 * a4) ;
+		 acc1 -= (acc0 * a1 + y1 * a2 + y2 * a3 + y3 * a4);
+		 acc2 -= (acc1 * a1 + acc0 * a2 + y1 * a3 + y2 * a4);
+		 acc3 -= (acc2 * a1 + acc1 * a2 + acc0 * a3 + y1 * a4);
 		 break;
 
-	  case 4:
-         a4 = *(pa--);
-         a3 = *(pa--);
-         a2 = *(pa--);
-         a1 = *(pa--);
-		 acc0 -= (y4 * a1 + y3 * a2 + y2 * a3 + y1 * a4) ;
-		 acc1 -= (acc0 * a1 + y4 * a2 + y3 * a3 + y2 * a4);
-		 acc2 -= (acc1 * a1 + acc0 * a2 + y4 * a3 + y3 * a4);
-		 acc3 -= (acc2 * a1 + acc1 * a2 + acc0 * a3 + y4 * a4);
+	  case 6:
+		 acc0 -= (y1 * a1 + y2 * a2 + y3 * a3 + y4 * a4 + y5 * a5 + y6 * a6) ;
+		 acc1 -= (acc0 * a1 + y1 * a2 + y2 * a3 + y3 * a4 + y4 * a5 + y5 * a6 );
+		 acc2 -= (acc1 * a1 + acc0 * a2 + y1 * a3 + y2 * a4 + y3 * a5 + y4 * a6 );
+		 acc3 -= (acc2 * a1 + acc1 * a2 + acc0 * a3 + y1 * a4 + y2 * a5 + y3 * a6 );
+		 y5 = y1;
+		 y6 = y2;
+		 break;
+
+	  case 10:
+		 acc0 -= (y1 * a1 + y2 * a2 + y3 * a3 + y4 * a4 + y5 * a5 + y6 * a6 + y7 * a7 + y8 * a8 + y9 * a9 + y10 * a10 ) ;
+		 acc1 -= (acc0 * a1 + y1 * a2 + y2 * a3 + y3 * a4 + y4 * a5 + y5 * a6 + y6 * a7 + y7 * a8 + y8 * a9 + y9 * a10 ) ;
+		 acc2 -= (acc1 * a1 + acc0 * a2 + y1 * a3 + y2 * a4 + y3 * a5 + y4 * a6 + y5 * a7 + y6 * a8 + y7 * a9 + y8 * a10 ) ;
+		 acc3 -= (acc2 * a1 + acc1 * a2 + acc0 * a3 + y1 * a4 + y2 * a5 + y3 * a6 + y4 * a7 + y5 * a8 + y6 * a9 + y7 * a10 ) ;
+		 y5 = y1;
+		 y6 = y2;
+		 y7 = y3;
+		 y8 = y4;
+		 y9 = y5;
+		 y10 = y6;
 		 break;
 
 	  default:
 		 break;
       }
+	 y1 = acc3;
+	 y2 = acc2;
+	 y3 = acc1;
+	 y4 = acc0;
 
       /* The results in the 4 accumulators, store in the destination buffer. */
       *pDst++ = acc0;
@@ -657,12 +636,11 @@ void arm_iirflt_f32(float *pSrc, const float *pCoeffs, float *pDst, int order, i
       *pDst++ = acc2;
       *pDst++ = acc3;
 
-      blkCnt--;
+      blkCnt -= 4;
    }
 
-   /* If the blockSize is not a multiple of 4, compute any remaining output samples here.  
+   /* If the blockSize is not a in the table, compute any remaining output samples here.  
    ** No loop unrolling is used. */
-   blkCnt = npts % 0x4u;
    while(blkCnt > 0u)
    {
       /* Set the accumulator to X[0] */
