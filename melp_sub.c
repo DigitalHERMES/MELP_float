@@ -44,21 +44,9 @@ Group (phone 972 480 7442).
     Copyright (c) 1995 by Texas Instruments, Inc.  All rights reserved.
 */
 
-/* Filter orders */
-#define ENV_ORD 2
-#define BPF_ORD 6
-
-/* Constants */
-#define PIT_BEG		BPF_ORD
-#define PIT_P_FR	((2*PITCHMAX)+1)
-#define PIT_FR_BEG	(-PITCHMAX)
-#define FIRST_CNTR	(PIT_BEG+PITCHMAX)
-#define BPF_BEG		(PIT_BEG+PIT_P_FR-FRAME)
-
-
 /* Static memory */
 static float envdel2[NUM_BANDS]			CCMRAM;
-static float sigbuf[PIT_BEG+PIT_P_FR]	CCMRAM;
+static float sigbuf[BPF_ORD+PITCH_FR]	CCMRAM;
 static float sigbuf1[FRAME+DC_ORD]		CCMRAM;
 
 static float *bpfdel[NUM_BANDS]			CCMRAM;
@@ -73,15 +61,15 @@ void bpvc_ana(float speech[], float fpitch[], float bpvc[], float pitch[])
     int j;
 	
     /* Filter lowest band and estimate pitch */
-    v_equ(&sigbuf[PIT_BEG-BPF_ORD],&bpfdel[0][0],BPF_ORD);
-    polflt(&speech[PIT_FR_BEG],&bpf_den[0],&sigbuf[PIT_BEG], BPF_ORD,PIT_P_FR);
-    v_equ(&bpfdel[0][0],&sigbuf[PIT_BEG+FRAME-BPF_ORD],BPF_ORD);
-    zerflt(&sigbuf[PIT_BEG],&bpf_num[0],&sigbuf[PIT_BEG], BPF_ORD,PIT_P_FR);
+    v_equ(&sigbuf[0],&bpfdel[0][0],BPF_ORD);
+    polflt(&speech[-PITCHMAX],&bpf_den[0],&sigbuf[BPF_ORD], BPF_ORD, PITCH_FR); 
+    v_equ(&bpfdel[0][0],&sigbuf[FRAME],BPF_ORD);
+    zerflt(&sigbuf[BPF_ORD],&bpf_num[0],&sigbuf[BPF_ORD], BPF_ORD, PITCH_FR);
     
-    *pitch = frac_pch(&sigbuf[FIRST_CNTR], &bpvc[0],fpitch[0],5,PITCHMIN,PITCHMAX,MINLENGTH);
+    *pitch = frac_pch(&sigbuf[BPF_ORD+PITCHMAX], &bpvc[0],fpitch[0],5,PITCHMIN,PITCHMAX,MINLENGTH);
     
     for (j = 1; j < NUM_PITCHES; j++) {
-		temp = frac_pch(&sigbuf[FIRST_CNTR], &pcorr,fpitch[j],5,PITCHMIN,PITCHMAX,MINLENGTH);
+		temp = frac_pch(&sigbuf[BPF_ORD+PITCHMAX], &pcorr,fpitch[j],5,PITCHMIN,PITCHMAX,MINLENGTH);
 		/* choose largest correlation value */
 		if (pcorr > bpvc[0]) {
 			*pitch = temp;
@@ -92,24 +80,23 @@ void bpvc_ana(float speech[], float fpitch[], float bpvc[], float pitch[])
     /* Calculate bandpass voicing for frames */
     for (j = 1; j < NUM_BANDS; j++) {
 		/* Bandpass filter input speech */
-		v_equ(&sigbuf[PIT_BEG-BPF_ORD],&bpfdel[j][0],BPF_ORD);
-		polflt(&speech[PIT_FR_BEG],&bpf_den[j*(BPF_ORD+1)],&sigbuf[PIT_BEG], BPF_ORD,PIT_P_FR);
-		v_equ(&bpfdel[j][0],&sigbuf[PIT_BEG+FRAME-BPF_ORD],BPF_ORD);
-		zerflt(&sigbuf[PIT_BEG],&bpf_num[j*(BPF_ORD+1)],&sigbuf[PIT_BEG],BPF_ORD,PIT_P_FR);
+		v_equ(&sigbuf[0],&bpfdel[j][0],BPF_ORD);
+		polflt(&speech[-PITCHMAX],&bpf_den[j*(BPF_ORD+1)],&sigbuf[BPF_ORD], BPF_ORD, PITCH_FR);
+		v_equ(&bpfdel[j][0],&sigbuf[FRAME],BPF_ORD);
+		zerflt(&sigbuf[BPF_ORD],&bpf_num[j*(BPF_ORD+1)],&sigbuf[BPF_ORD],BPF_ORD, PITCH_FR);
 		
 		/* Check correlations for each frame */
-		temp = frac_pch(&sigbuf[FIRST_CNTR],
-				&bpvc[j],*pitch,0,PITCHMIN,PITCHMAX,MINLENGTH);
+		temp = frac_pch(&sigbuf[BPF_ORD+PITCHMAX], &bpvc[j],*pitch,0,PITCHMIN,PITCHMAX,MINLENGTH);
 
 		/* Calculate envelope of bandpass filtered input speech */
 		temp = envdel2[j];
-		envdel2[j] = sigbuf[PIT_BEG+FRAME-1];
-		v_equ(&sigbuf[PIT_BEG-ENV_ORD],&envdel[j][0],ENV_ORD);
-		envelope(&sigbuf[PIT_BEG],temp,&sigbuf[PIT_BEG],PIT_P_FR);
-		v_equ(&envdel[j][0],&sigbuf[PIT_BEG+FRAME-ENV_ORD],ENV_ORD);
+		envdel2[j] = sigbuf[BPF_ORD+FRAME-1];
+		v_equ(&sigbuf[BPF_ORD-ENV_ORD],&envdel[j][0],ENV_ORD);
+		envelope(&sigbuf[BPF_ORD],temp,&sigbuf[BPF_ORD],PITCH_FR);
+		v_equ(&envdel[j][0],&sigbuf[BPF_ORD+FRAME-ENV_ORD],ENV_ORD);
 		
 		/* Check correlations for each frame */
-		temp = frac_pch(&sigbuf[FIRST_CNTR],&pcorr,	*pitch,0 ,PITCHMIN,PITCHMAX,MINLENGTH);
+		temp = frac_pch(&sigbuf[BPF_ORD+PITCHMAX],&pcorr,	*pitch,0 ,PITCHMIN,PITCHMAX,MINLENGTH);
 						
 		/* reduce envelope correlation */
 		pcorr -= 0.1f;		

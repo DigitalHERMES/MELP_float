@@ -40,17 +40,17 @@ Group (phone 972 480 7442).
 #include "dsp_sub.h"
 
 /* memory definitions */
-static float sigbuf[SIG_LENGTH]		CCMRAM;
-static float speech[IN_BEG+FRAME]	CCMRAM;
-static float dcdel[DC_ORD]			CCMRAM;
-static float lpfsp_del[LPF_ORD]		CCMRAM;
+static float sigbuf[LPF_ORD+PITCH_FR]	CCMRAM;
+static float speech[IN_BEG+FRAME]		CCMRAM;
+static float dcdel[DC_ORD]				CCMRAM;
+static float lpfsp_del[LPF_ORD]			CCMRAM;
 static float pitch_avg;
-static float fpitch[2]				CCMRAM;
+static float fpitch[2]					CCMRAM;
 
-static float w_fs[NUM_HARM]			CCMRAM;
-static float r[LPC_ORD+1]			CCMRAM, 
-			 lpc[LPC_ORD+1]			CCMRAM;
-static float weights[LPC_ORD]		CCMRAM;
+static float w_fs[NUM_HARM]				CCMRAM;
+static float r[LPC_ORD+1]				CCMRAM, 
+			 lpc[LPC_ORD+1]				CCMRAM;
+static float weights[LPC_ORD]			CCMRAM;
 	
 void melp_ana(float sp_in[],struct melp_param *par)
 {
@@ -63,7 +63,7 @@ void melp_ana(float sp_in[],struct melp_param *par)
     dc_rmv(sp_in,&speech[IN_BEG],dcdel,FRAME);
     
     /* Copy input speech to pitch window and lowpass filter */
-    v_equ(&sigbuf[LPF_ORD],&speech[PITCH_BEG],PITCH_FR);
+    v_equ(&sigbuf[LPF_ORD],&speech[FRAME/2],PITCH_FR);
     v_equ(sigbuf,lpfsp_del,LPF_ORD);
     polflt(&sigbuf[LPF_ORD],lpf_den,&sigbuf[LPF_ORD],LPF_ORD,PITCH_FR);
     v_equ(lpfsp_del,&sigbuf[FRAME],LPF_ORD);
@@ -90,7 +90,7 @@ void melp_ana(float sp_in[],struct melp_param *par)
     lpc_bw_expand(lpc,lpc,BWFACT,LPC_ORD);
     
     /* Calculate LPC residual */
-    zerflt(&speech[PITCH_BEG],lpc,&sigbuf[LPF_ORD],LPC_ORD,PITCH_FR);
+    zerflt(&speech[FRAME/2],lpc,&sigbuf[LPF_ORD],LPC_ORD,PITCH_FR);
         
     /* Check peakiness of residual signal */
     temp = peakiness(&sigbuf[(LPF_ORD+(PITCHMAX/2))],PITCHMAX);

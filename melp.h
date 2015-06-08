@@ -90,13 +90,11 @@ Group (phone 972 480 7442).
 #define PEAK_THRESH 1.34f
 #define PEAK_THR2 1.6f
 #define SILENCE_DB 30.0f
-#define MAX_ORD LPF_ORD
-#define FRAME_BEG (PITCHMAX-(FRAME/2))
-#define FRAME_END (FRAME_BEG+FRAME)
-#define PITCH_BEG (FRAME_END-PITCHMAX)
+
+#define FRAME_BEG (PITCHMAX -(FRAME/2))
+#define FRAME_END (PITCHMAX + (FRAME/2))
 #define PITCH_FR ((2*PITCHMAX)+1)
-#define IN_BEG (PITCH_BEG+PITCH_FR-FRAME)
-#define SIG_LENGTH (LPF_ORD+PITCH_FR)
+#define IN_BEG (PITCH_FR-(FRAME/2))
 
 #define NUM_GOOD 3
 #define NUM_PITCHES 2
@@ -136,7 +134,6 @@ extern int fsvq_weighted;
 #define PDOUBLE3 0.9f
 #define PDOUBLE4 0.7f
 #define LONG_PITCH 100.0f
-#define PITCH_FR  ((2*PITCHMAX)+1)
 
 
 /* Structure definition */
