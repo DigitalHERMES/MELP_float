@@ -398,7 +398,6 @@ float vq_enc(float *cb, float *u, int levels, int p, float *u_hat, int *indices)
 
 void vq_fsw(float *w_fs, int num_harm, float pitch)
 {
-
     int j;
     float w0;
 
