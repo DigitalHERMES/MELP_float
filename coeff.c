@@ -25,7 +25,7 @@ Group (phone 972 480 7442).
 
 /* Butterworth lowpass filter	*/
 /* numerator */
-float lpf_num[LPF_ORD+1] RODATA = {
+const float lpf_num[LPF_ORD+1] RODATA = {
       0.00105165f,
       0.00630988f,
       0.01577470f,
@@ -34,7 +34,7 @@ float lpf_num[LPF_ORD+1] RODATA = {
       0.00630988f,
       0.00105165f};
 /* denominator */
-float lpf_den[LPF_ORD+1] RODATA = { 
+const float lpf_den[LPF_ORD+1] RODATA = { 
       1.00000000f,
      -2.97852993f,
       4.13608100f,
@@ -44,7 +44,7 @@ float lpf_den[LPF_ORD+1] RODATA = {
       0.04335699f};
 
 /* Butterworth bandpass filters */
-float bpf_num[NUM_BANDS*(BPF_ORD+1)] RODATA = {
+const float bpf_num[NUM_BANDS*(BPF_ORD+1)] RODATA = {
       0.00002883f,
       0.00017296f,
       0.00043239f,
@@ -81,7 +81,7 @@ float bpf_num[NUM_BANDS*(BPF_ORD+1)] RODATA = {
      -0.00630988f,
       0.00105165f};
 
-float bpf_den[NUM_BANDS*(BPF_ORD+1)] RODATA = {
+const float bpf_den[NUM_BANDS*(BPF_ORD+1)] RODATA = {
       1.00000000,
      -4.48456301f, 
       8.52900508f, 
@@ -119,7 +119,7 @@ float bpf_den[NUM_BANDS*(BPF_ORD+1)] RODATA = {
       0.04335699f};
 
 /* Hamming window coefficients */
-float win_cof[LPC_FRAME] RODATA = {
+const float win_cof[LPC_FRAME] RODATA = {
       0.08000000f, 
       0.08022927f, 
       0.08091685f, 
@@ -322,7 +322,7 @@ float win_cof[LPC_FRAME] RODATA = {
       0.08000000f};
 
 /* Bandpass filter coefficients */
-float bp_cof[NUM_BANDS][MIX_ORD+1] RODATA = {
+const float bp_cof[NUM_BANDS][MIX_ORD+1] RODATA = {
 {
      -0.00000000f, 
      -0.00302890f, 
@@ -498,7 +498,7 @@ float bp_cof[NUM_BANDS][MIX_ORD+1] RODATA = {
       0.00554149f, 
       0.00000000}};
 /* Triangle pulse dispersion filter */
-float disp_cof[DISP_ORD+1] RODATA = {
+const float disp_cof[DISP_ORD+1] RODATA = {
      -0.17304259f, 
      -0.01405709f, 
       0.01224406f, 

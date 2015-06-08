@@ -188,7 +188,7 @@ void melp_ana(float sp_in[],struct melp_param *par)
  */
 void melp_ana_init(melp_param_t *par)
 {
-    int j;
+    int i;
 
     bpvc_ana_init();
     pitch_ana_init();
@@ -236,7 +236,7 @@ void melp_ana_init(melp_param_t *par)
 		fsvq_weighted = 1;
 	    /* Scale codebook to 0 to 1 */
 		v_scale(msvq_cb,(2.0f/FSAMP),3200);
-		for (j = 0; j < FS_LEVELS; j++)
-			window(&fsvq_cb[j*NUM_HARM],w_fs,&fsvq_cb[j*NUM_HARM], NUM_HARM);
+		for (i = 0; i < FS_LEVELS; i++)
+			window(&fsvq_cb[i*NUM_HARM],w_fs,&fsvq_cb[i*NUM_HARM], NUM_HARM);
 	}
 }
