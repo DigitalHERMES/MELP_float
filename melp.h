@@ -92,7 +92,7 @@ Group (phone 972 480 7442).
 #define SILENCE_DB 30.0f
 
 #define FRAME_BEG (PITCHMAX -(FRAME/2))
-#define FRAME_END (PITCHMAX + (FRAME/2))
+#define FRAME_END (FRAME_BEG + FRAME)
 #define PITCH_FR ((2*PITCHMAX)+1)
 #define IN_BEG (PITCH_FR-(FRAME/2))
 

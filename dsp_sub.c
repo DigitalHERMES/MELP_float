@@ -287,9 +287,6 @@ void polflt(float input[], const float coeff[], float output[], int order,int np
 /*								*/
 void iirflt(float input[], const float coeff[], float output[], float delay[], int order,int npts)
 {
-	int i,j;
-	float accum;
-
 	v_equ(&output[-order], delay, order);
 	polflt(input, coeff, output, order, npts);
 	v_equ(delay,&output[npts - order], order);
@@ -307,15 +304,198 @@ void firflt(float input[], const float coeff[], float output[], float delay[], i
 	zerflt(input, coeff, output, order, npts);
 }
 
+void firflt_f32(float *pSrc, const float *pCoeffs, float *pDst, int order, int npts)
+{
+   const float *px, *pb;                      /* Temporary pointers for state and coefficient buffers */
+   float acc0, acc1, acc2, acc3;			  /* Accumulators */
+   float x0, x1, x2, x3, c0;				  /* Temporary variables to hold state and coefficient values */
+   uint32_t numTaps, tapCnt, blkCnt;          /* Loop counters */
+   float p0,p1,p2,p3;						  /* Temporary product values */
+
+   pSrc += (npts - 1);
+   pDst += (npts - 1);
+   numTaps = order + 1;	
+
+
+   /* Apply loop unrolling and compute 4 output values simultaneously.  
+    * The variables acc0 ... acc3 hold output values that are being computed:  
+   */
+   blkCnt = 0; //npts >> 2;
+
+   /* First part of the processing with loop unrolling.  Compute 4 outputs at a time.  
+   ** a second loop below computes the remaining 1 to 3 samples. */
+   while(blkCnt > 0)
+   {
+      /* Set all accumulators to zero */
+      acc0 = 0.0f;
+      acc1 = 0.0f;
+      acc2 = 0.0f;
+      acc3 = 0.0f;
+
+	  /* Initialize state pointer */
+      px = pSrc;
+
+      /* Initialize coeff pointer */
+      pb = pCoeffs;		
+   
+      /* Read the first three samples from the state buffer */
+      x0 = *px--;
+      x1 = *px--;
+      x2 = *px--;
+
+      /* Loop unrolling.  Process 4 taps at a time. */
+      tapCnt = numTaps >> 2u;
+      
+      /* Loop over the number of taps.  Unroll by a factor of 4.  
+       ** Repeat until we've computed numTaps-4 coefficients. */
+      while(tapCnt > 0u)
+      {
+         /* Read the b[0] coefficient */
+         c0 = *(pb++);
+
+         x3 = *(px--);
+
+         p0 = x0 * c0;
+         p1 = x1 * c0;
+         p2 = x2 * c0;
+         p3 = x3 * c0;
+
+         /* Read the b[1] coefficient */
+         c0 = *(pb++);
+		 x0 = *(px--);
+         
+         acc0 += p0;
+         acc1 += p1;
+         acc2 += p2;
+         acc3 += p3;
+
+         /* Perform the multiply-accumulate */
+         p0 = x1 * c0;
+         p1 = x2 * c0;   
+         p2 = x3 * c0;   
+         p3 = x0 * c0;   
+         
+         /* Read the b[2] coefficient */
+         c0 = *(pb++);
+         x1 = *(px--);
+         
+         acc0 += p0;
+         acc1 += p1;
+         acc2 += p2;
+         acc3 += p3;
+
+         /* Perform the multiply-accumulates */      
+         p0 = x2 * c0;
+         p1 = x3 * c0;   
+         p2 = x0 * c0;   
+         p3 = x1 * c0;   
+
+		 /* Read the b[3] coefficient */
+         c0 = *(pb++);
+         x2 = *(px--);
+         
+         acc0 += p0;
+         acc1 += p1;
+         acc2 += p2;
+         acc3 += p3;
+
+         /* Perform the multiply-accumulates */      
+         p0 = x3 * c0;
+         p1 = x0 * c0;   
+         p2 = x1 * c0;   
+         p3 = x2 * c0;   
+
+         acc0 += p0;
+         acc1 += p1;
+         acc2 += p2;
+         acc3 += p3;
+
+		 tapCnt--;
+     }
+
+      /* If the filter length is not a multiple of 4, compute the remaining filter taps */
+      tapCnt = numTaps % 0x4;
+
+      while(tapCnt > 0)
+      {
+         /* Read coefficients */
+         c0 = *(pb++);
+
+         /* Fetch 1 state variable */
+         x3 = *(px--);
+
+         /* Perform the multiply-accumulates */      
+         p0 = x0 * c0;
+         p1 = x1 * c0;   
+         p2 = x2 * c0;   
+         p3 = x3 * c0;   
+
+         /* Reuse the present sample states for next sample */
+         x0 = x1;
+         x1 = x2;
+         x2 = x3;
+         
+         acc0 += p0;
+         acc1 += p1;
+         acc2 += p2;
+         acc3 += p3;
+         /* Decrement the loop counter */
+         tapCnt--;
+      }
+
+      /* Advance the state pointer by 4 to process the next group of 4 samples */
+      pSrc = pSrc - 4;
+
+      /* The results in the 4 accumulators, store in the destination buffer. */
+      *pDst-- = acc0;
+      *pDst-- = acc1;
+      *pDst-- = acc2;
+      *pDst-- = acc3;
+
+      blkCnt--;
+   }
+
+   /* If the blockSize is not a multiple of 4, compute any remaining output samples here.  
+   ** No loop unrolling is used. */
+   blkCnt = npts; //% 0x4;
+
+   while(blkCnt > 0)
+   {
+      /* Set the accumulator to zero */
+      acc0 = 0.0f;
+      /* Initialize state pointer */
+      px = pSrc;
+	  /* Initialize Coefficient pointer */
+      pb = pCoeffs;
+      tapCnt = numTaps;
+
+	  /* Perform the multiply-accumulates */
+      do
+      {
+         acc0 += *px-- * *pb++;
+         tapCnt--;
+      } while(tapCnt > 0);
+
+      /* The result is store in the destination buffer. */
+      *pDst-- = acc0;
+
+      /* Advance state pointer by 1 for the next sample */
+      pSrc--;
+      blkCnt--;
+   }
+}
+
 void zerflt(float input[], const float coeff[], float output[], int order, int npts)
 {
-    int i,j;
-    float accum;
+//    int i,j;
+//    float accum;
 
-    for (i = npts-1; i >= 0; i-- ) {
-		accum = 0.0;
-		for (j = 0; j <= order; j++ )
-			accum += input[i-j] * coeff[j];
-		output[i] = accum;
-    }
+
+	firflt_f32(input, coeff, output, order, npts);
+//    for (i = npts-1; i >= 0; i-- ) {
+//		accum = 0.0;
+//		for (j = 0; j <= order; j++ )
+//			accum += input[i-j] * coeff[j];
+//		output[i] = accum;
+//    }
 }
