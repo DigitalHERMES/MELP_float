@@ -276,13 +276,14 @@ void polflt(float input[], const float coeff[], float output[], int order,int np
 			accum -= output[i-j] * coeff[j];
 		output[i] = accum;
 	}
+//	iirflt_f32(input, coeff, output, order, npts);
 }
 
 void iirflt_f32(float input[], const float coeff[], float output[], int order,int npts)
 {
 	int i,j;
 	float accum0, accum1;
-	float y1, y2, a0, a1, a2, c1, c2;
+	float y1, y2, a0, a1, c1, c2;
 	float *pstates, *py, *pc;
 	
 	a0 = *coeff++;		// get a0, which is always	1.0
@@ -306,7 +307,7 @@ void iirflt_f32(float input[], const float coeff[], float output[], int order,in
 		accum0 -= y1 * a1;
 		accum1 -= y1 * c2;
 
-		for (j = 1; j < order; j++ )
+		for (j = 2; j < order; j++ )
 		{
 			c1 = c2;
 			c2 = *pc++;	
