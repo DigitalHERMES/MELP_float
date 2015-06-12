@@ -268,15 +268,25 @@ int unpack_code(unsigned int **p_ch_beg, int *p_ch_bit, int *p_code, int numbits
 /*								*/
 void polflt(float input[], const float coeff[], float output[], int order,int npts)
 {
-	int i,j;
-	float accum;
-	for (i = 0; i < npts; i++ ) {
-		accum = input[i];
-		for (j = 1; j <= order; j++ )
-			accum -= output[i-j] * coeff[j];
-		output[i] = accum;
+	int numTaps;
+	float accum, a1;
+	float *pc; 
+	float *py;
+	coeff++;
+	a1 = *coeff++;
+	accum = output[-1];
+	order--;
+	while (npts-- > 0) {
+		accum = *input++ - (accum * a1); 
+		pc = coeff;
+		py = &output[-2];
+		numTaps = order;
+		while(numTaps-- > 0)
+		{
+			accum -= (*py-- * *pc++);
+		}
+		*output++ = accum;
 	}
-//	iirflt_f32(input, coeff, output, order, npts);
 }
 
 void iirflt_f32(float input[], const float coeff[], float output[], int order,int npts)
