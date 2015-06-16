@@ -111,36 +111,6 @@ float median(float input[], int npts)
 }
 
 /*								*/
-/*	Subroutine PACK_CODE: Pack bit code into channel.	*/
-/*								*/
-void pack_code(int code,unsigned int **p_ch_beg,int *p_ch_bit, int numbits, int wsize)
-{
-    int	i,ch_bit;
-    unsigned int *ch_word;
-
-	ch_bit = *p_ch_bit;
-	ch_word = *p_ch_beg;
-
-	for (i = 0; i < numbits; i++) {
-		/* Mask in bit from code to channel word	*/
-		if (ch_bit == 0)
-		  *ch_word = ((code & (1<<i)) >> i);
-		else
-		  *ch_word |= (((code & (1<<i)) >> i) << ch_bit);
-
-		/* Check for full channel word			*/
-		if (++ch_bit >= wsize) {
-			ch_bit = 0;
-			(*p_ch_beg)++ ;
-			ch_word++ ;
-		}
-	}
-
-	/* Save updated bit counter	*/
-	*p_ch_bit = ch_bit;
-}
-
-/*								*/
 /*	Subroutine peakiness: estimate peakiness of input       */
 /*      signal using ratio of L2 to L1 norms.                   */
 /*								*/
@@ -220,6 +190,35 @@ void	rand_num(float output[], float amplitude, int npts)
     }
 }
 
+/*								*/
+/*	Subroutine PACK_CODE: Pack bit code into channel.	*/
+/*								*/
+void pack_code(int code,unsigned int **p_ch_beg,int *p_ch_bit, int numbits, int wsize)
+{
+    int	i,ch_bit;
+    unsigned int *ch_word;
+
+	ch_bit = *p_ch_bit;
+	ch_word = *p_ch_beg;
+
+	for (i = 0; i < numbits; i++) {
+		/* Mask in bit from code to channel word	*/
+		if (ch_bit == 0)
+		  *ch_word = ((code & (1<<i)) >> i);
+		else
+		  *ch_word |= (((code & (1<<i)) >> i) << ch_bit);
+
+		/* Check for full channel word			*/
+		if (++ch_bit >= wsize) {
+			ch_bit = 0;
+			(*p_ch_beg)++ ;
+			ch_word++ ;
+		}
+	}
+
+	/* Save updated bit counter	*/
+	*p_ch_bit = ch_bit;
+}
 
 /*								*/
 /*	Subroutine UNPACK_CODE: Unpack bit code from channel.	*/
